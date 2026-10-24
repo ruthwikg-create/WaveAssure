@@ -1,0 +1,29 @@
+Requirement ID,Title,Design element,Verification evidence,Status
+SWR-001,Controlled research ingestion,waveassure/schemas.py;waveassure/csv_input.py,tests/test_csv.py,Implemented (research)
+SWR-002,Reject invalid units and timestamps,waveassure/schemas.py;waveassure/csv_input.py,tests/test_csv.py;tests/test_signals.py,Implemented (research)
+SWR-003,Deterministic technical checks,waveassure/signals.py,tests/test_signals.py,Implemented (unvalidated)
+SWR-004,Source-preserving fault injection,waveassure/signals.py;waveassure/storage.py,tests/test_signals.py;tests/test_api.py,Implemented (research)
+SWR-005,Data provenance SHA-256,waveassure/storage.py,tests/test_api.py,Implemented (local only)
+SWR-006,Hash-linked local audit,waveassure/storage.py,tests/test_api.py,Implemented (not signed)
+SWR-007,Disabled clinical classifier,waveassure/signals.py;waveassure/api.py,tests/test_signals.py;tests/test_api.py,Implemented
+SWR-008,Versioned research evidence export,waveassure/api.py,tests/test_api.py,Implemented (JSON)
+FTR-001,Validated VT true/false classifier,benchmarks/train_vtac.py,Requires downloaded VTaC and independent validation,Not completed
+FTR-002,Secure remote hosting / RBAC,Not implemented,Requires security lifecycle and testing,Not completed
+FTR-003,FHIR interoperability,Not implemented,Requires conformance tests,Not completed
+SWR-009,Constrained WFDB ingestion and validation,waveassure/wfdb_input.py,tests/test_wfdb_import.py,Implemented (format-16 only)
+SWR-010,Preserve lead identity and source reference label,waveassure/schemas.py;waveassure/wfdb_input.py;web/app.js,tests/test_wfdb_import.py,Implemented (no prediction)
+SWR-011,Reject unsupported or tampered research models,waveassure/alarm_model.py,tests/test_research_model.py,Implemented (unit tested)
+SWR-012,Reject synthetic and fault-derived research model assessment,waveassure/api.py,tests/test_research_model.py,Implemented (unit tested)
+SWR-013,Training blocks single-class events and insufficient official partition coverage,benchmarks/train_vtac.py,tests/test_research_model.py,Implemented (synthetic fixtures)
+SWR-014,Use strictly pre-alarm data in research features,waveassure/alarm_model.py,tests/test_research_model.py,Implemented (synthetic fixtures)
+
+SWR-015,Every medical-like report discloses data class and evidence method,waveassure/evidence.py;waveassure/report_html.py,tests/test_evidence.py,Implemented (research reports)
+SWR-016,Do not transfer reference labels to derived fault signals,waveassure/signals.py;waveassure/evidence.py,tests/test_evidence.py;tests/test_wfdb_import.py,Implemented (research reports)
+SWR-017,Pre and post 300-second observations are separate and do not calculate diagnoses,waveassure/evidence.py,tests/test_evidence.py,Implemented (descriptive only)
+SWR-018,Render escaped print-view with visible research limitation,waveassure/report_html.py,tests/test_evidence.py,Implemented (API tested; visual acceptance pending)
+SWR-016,Reject self-hashed untrusted model from runtime,waveassure/alarm_model.py;docs/MODEL_ARTIFACT_TRUST.md,tests/test_safety_hardening09.py::test_forged_checksum_does_not_activate_model,Implemented (engineering control only)
+SWR-017,Reject altered or impersonated model attestation,waveassure/alarm_model.py,tests/test_safety_hardening09.py::test_signer_identity_is_covered_by_signature;tests/test_safety_hardening09.py::test_trusted_release_signature_verifies_then_detects_model_tamper,Implemented (external key required)
+SWR-018,Isolate engineering API from dedicated review-mode process,waveassure/api.py;web/review.js,tests/test_safety_hardening09.py::test_isolated_review_disallows_label_and_engineering_routes,Implemented (not independent study blinding)
+SWR-019,Reject uncredentialed reviewer routes,waveassure/api.py,tests/test_safety_hardening09.py::test_review_mode_rejects_missing_key_configuration,Implemented (shared secret only)
+SWR-020,Fail closed when model input evidence insufficient,waveassure/alarm_model.py;waveassure/api.py,tests/test_safety_hardening09.py::test_abstains_when_primary_ecg_unusable,Prototype heuristic; analytical validation pending
+SWR-021,Report corrupted record error without unhandled exception,waveassure/api.py;waveassure/storage.py,tests/test_safety_hardening09.py::test_tampered_record_api_does_not_return_unhandled_500,Implemented (selected API routes)

@@ -1,0 +1,421 @@
+{
+  "actual_patient_data_bundled": false,
+  "clinical_model_trained": false,
+  "files": {
+    ".github/workflows/tests.yml": {
+      "bytes": 1291,
+      "sha256": "e220e43a9112c22df729e9c2f96864887bd289169342bcb5818cc4d1533735ed"
+    },
+    ".gitignore": {
+      "bytes": 197,
+      "sha256": "d50be2b2eaea22c6e57e38b14c204c417eb0298879cb89e8dccff8d6922f2eeb"
+    },
+    "CITATION.cff": {
+      "bytes": 480,
+      "sha256": "a61e2d95401d6ea7cf2ac27a3f3999e021132d93588a125429af86102db88b26"
+    },
+    "CONTRIBUTING.md": {
+      "bytes": 987,
+      "sha256": "6223064a841ef1648fad169820a306c5f772ef07baf7ba158f9d23421bd7d62c"
+    },
+    "LICENSE": {
+      "bytes": 1296,
+      "sha256": "0039c55cf2c51a2f0024edf4566ca4d6c20d18e66098df5c4e7dc00439d9c9c3"
+    },
+    "README.md": {
+      "bytes": 18820,
+      "sha256": "cfd00b5a9c5e36f6ad263aca2c53a3377aa357a53244a4aab50490ade3607b31"
+    },
+    "SECURITY.md": {
+      "bytes": 2041,
+      "sha256": "10f9d02b8c0044cbe993b586372e2d5c7e24821d463e0f3e8bd7f146113c1577"
+    },
+    "benchmarks/plan_vtac_download.py": {
+      "bytes": 4795,
+      "sha256": "72f21c49cf95fbb5ffb5db0873e7b840e9fde42eaf80be93266ce97d020a817b"
+    },
+    "benchmarks/prepare_and_train.py": {
+      "bytes": 7360,
+      "sha256": "97a282c84ae48a0416582e7453d49b3a88087e11a33afd1a8fa76d93656976e2"
+    },
+    "benchmarks/train_vtac.py": {
+      "bytes": 18919,
+      "sha256": "5c938b3d80d9cd0eda7d012b9c6f430cdcebb9a11c90622e48deadd091cb91b6"
+    },
+    "docs/ARCHITECTURE.md": {
+      "bytes": 2627,
+      "sha256": "8aeafc2f0a328e0093c8bf397c07da775c1a2b502af7b337b532b8db9fece37e"
+    },
+    "docs/CHANGELOG.md": {
+      "bytes": 2379,
+      "sha256": "b1a4798efff2bce233365becfc021ffdf0e56c4df14543bddd68c0d0d9c3f570"
+    },
+    "docs/CLINICAL_VALIDATION_ROADMAP.md": {
+      "bytes": 1717,
+      "sha256": "089370656584f95c5776ea76328437b7bb80df1a27f48481ba0700bef17ab099"
+    },
+    "docs/CLINICIAN_PILOT_PROTOCOL.md": {
+      "bytes": 6216,
+      "sha256": "acd70fb5f0f70014a1c73bb6562b5c2fc8990303724a154c7d7051ef2ada8d86"
+    },
+    "docs/DATA_RIGHTS.md": {
+      "bytes": 1037,
+      "sha256": "7d24ce40aa87263d32e8dca6cfa5c4231b13f95908698a04ee3fed60a81685d2"
+    },
+    "docs/GITHUB_RELEASE.md": {
+      "bytes": 1194,
+      "sha256": "9032e6c349749b4d9df28be3ceea5c57852bdb60d1adde28321618e0598ae4ea"
+    },
+    "docs/HAZARD_REGISTER.csv": {
+      "bytes": 5359,
+      "sha256": "e3c7ca36d1a41d1c35b0418ce9b1eff417a0f07a9e3b62da41079eaeb7837c73"
+    },
+    "docs/INTENDED_USE.md": {
+      "bytes": 1897,
+      "sha256": "0ab7d2edb23db75d323d618f17829373474be5a30f76e7c5b2bb228d64a85b6b"
+    },
+    "docs/MODEL_ARTIFACT_TRUST.md": {
+      "bytes": 2035,
+      "sha256": "e0eae54e7939e8cf339c6c665e74daadc26badbd1f5ac7b0c397ce36d23d8f34"
+    },
+    "docs/MODEL_CARD.md": {
+      "bytes": 979,
+      "sha256": "8475a0e8a541aa945065ff5b4038565837e4cb0bfef1dc5106de9b9fb659334a"
+    },
+    "docs/OUTPUT_VALIDATION_SPEC.md": {
+      "bytes": 4697,
+      "sha256": "4aed03f7e9a75718e1ee290d77ffa8bd05eab9d7b9a4ab2f33d98ab92fed1ffa"
+    },
+    "docs/RELEASE_NOTES_V0.6.md": {
+      "bytes": 1250,
+      "sha256": "2f5a1099e6c58097ecc57ed5498d42b96826ff62ff69b4d3385aaaf05b5fa7a4"
+    },
+    "docs/RELEASE_NOTES_V0.7.md": {
+      "bytes": 1769,
+      "sha256": "9bd920efcf0f637b6674acfe13fb8e2bf7f01b74ad44dbf38f686573ac434ab1"
+    },
+    "docs/REQUIREMENTS_TRACEABILITY.csv": {
+      "bytes": 4357,
+      "sha256": "d11b0f7f57175f37099b8c988ab0d70ce2f830ab4ce928a2574958a5d24f311a"
+    },
+    "docs/REVIEW_MODE.md": {
+      "bytes": 1491,
+      "sha256": "7856c96803905d4fd3a56998a9817b82af7a216baad566a10b7f23f2e7279747"
+    },
+    "docs/SECURITY.md": {
+      "bytes": 1034,
+      "sha256": "08eb7af6dc638760a1fee11e96a08669d6a8a24fe21dc5f8390f260d4e8b66e2"
+    },
+    "docs/STANDARDS_MATRIX.md": {
+      "bytes": 2374,
+      "sha256": "69bd22bbd08fd1d676689e70fc664ad4e4cd983f237a8129bc97a25bb90414a0"
+    },
+    "docs/TEST_PLAN.md": {
+      "bytes": 2415,
+      "sha256": "6eddc69ef298ac3c54a90c8886bfd9a865e16c20fa6ff990fec7017fe08d6490"
+    },
+    "docs/VT_RESEARCH_TRAINING.md": {
+      "bytes": 8982,
+      "sha256": "d0f9d4366d4ddae6772c5f30ef2ca457759406278d096e481eaaaa369f8f0e21"
+    },
+    "publication/MANUSCRIPT_DRAFT.md": {
+      "bytes": 6983,
+      "sha256": "c5c0e0ce87329d36e24a31d104911f731dc148dc3b92fa54e48f6e0e904838d8"
+    },
+    "publication/RELEASE_CHECKLIST.md": {
+      "bytes": 1782,
+      "sha256": "8cf428b1463c64888e68874ec9f5a5b22efdf43a64937c93584cefff25ca5382"
+    },
+    "publication/REPORTING_CHECKLIST.md": {
+      "bytes": 3038,
+      "sha256": "7591ddada553dbd58af49abc60f031a32ceb1de1ac3261f0853c7940a10c3818"
+    },
+    "pyproject.toml": {
+      "bytes": 83,
+      "sha256": "2507b90dcebe6681681b360c2c158ad9670199060364b4c50267e48d26c3fbd5"
+    },
+    "regulatory/APPROVAL_EVIDENCE_REGISTER.csv": {
+      "bytes": 1919,
+      "sha256": "d854f683d74b1f7eb20f6932453b328fdd814c3ba304973100415d9b4d1e6a77"
+    },
+    "regulatory/AUDIT_GAP_REPORT.md": {
+      "bytes": 4439,
+      "sha256": "4e8da908a9d7ea974fb8361f7f90e6ea87ff488065195f4a2c7ed73b0e54fe23"
+    },
+    "regulatory/CLINICAL_EVALUATION_PLAN_TEMPLATE.md": {
+      "bytes": 3820,
+      "sha256": "3807749592dea74e117811abd48081234f954192940dce2bfff65f3cc67e6f98"
+    },
+    "regulatory/HOW_TO_START_WITH_A_HOSPITAL.md": {
+      "bytes": 1879,
+      "sha256": "d8169f4d166ac956cbec5650eed54857a72c5dbc5f9c0a6ec5de03ed47cfae76"
+    },
+    "regulatory/INDIA_APPROVAL_PATHWAY.md": {
+      "bytes": 7083,
+      "sha256": "45c1adecd3c7a6ce20876ad076facbdb14be59bb419dfcb6186bf54958fc40ef"
+    },
+    "reports/CLINICAL_READINESS.json": {
+      "bytes": 4640,
+      "sha256": "9c41beb7594ad905ab669b4cf402b4b41dfb41b4a724145b6a7056a3518f6ce4"
+    },
+    "reports/CLINICAL_READINESS.md": {
+      "bytes": 2750,
+      "sha256": "fa8cf64581992d449517b2d662aef22dc50cea085f79a943c10774fbccdafc3a"
+    },
+    "reports/CORRECTIVE_ACTION_V0.9.md": {
+      "bytes": 3688,
+      "sha256": "36474164f2e2ef1712b18705ff1a0fb3e461bbb28a022a04a57cec73a8e9849c"
+    },
+    "reports/PUBLICATION_READINESS.json": {
+      "bytes": 1252,
+      "sha256": "71a39445c74e17bf3bea63efc332e54b6a5092ea6ab3aa871ea98aa68651cbbc"
+    },
+    "reports/PUBLICATION_READINESS.md": {
+      "bytes": 1081,
+      "sha256": "ce95756bcb317aa32fc35567ff5c4957be8c501b18fcc75077384b1443eb6040"
+    },
+    "reports/SYNTHETIC_EXAMPLE_EVIDENCE.json": {
+      "bytes": 4436,
+      "sha256": "d1dc99b3775b3725b990aaf6b8ee739a09b33b0efeb604713bb550d2fc6d6eb9"
+    },
+    "reports/SYNTHETIC_EXAMPLE_PRINTABLE.html": {
+      "bytes": 4303,
+      "sha256": "b8dba3662967df6df3ba16ce6233b90740576f88d77ece58d0c226ba1ec84b02"
+    },
+    "reports/VERIFICATION_V0.9.md": {
+      "bytes": 1305,
+      "sha256": "2559daf218d722e177efe5375f51701bf5c71134effd6d65f80572a2dc63144f"
+    },
+    "reports/historical/README.md": {
+      "bytes": 322,
+      "sha256": "99ce140ede5e7136020790258de40294b351fa0ba6dc7d9b7a201cfe1c531e09"
+    },
+    "reports/historical/TEST_AUDIT_V0.8.md": {
+      "bytes": 1431,
+      "sha256": "406ffbfab7e32addb65c6d10e29804e038889bea309d8d0597875f3f4e619a9a"
+    },
+    "reports/historical/TEST_RESULT_V0.3.md": {
+      "bytes": 1519,
+      "sha256": "08390a28280a7663e11a9a1a89f84972cdbc4c74c116492d11530bbfa77feef2"
+    },
+    "reports/historical/TEST_RESULT_V0.4.md": {
+      "bytes": 811,
+      "sha256": "b9ef396c4e14d686baf6217644ae4d209c82dc241198577f339074f7c1959a1c"
+    },
+    "reports/historical/VALIDATION_RESULT.md": {
+      "bytes": 1459,
+      "sha256": "6f899e2b8a1f927c164f43eab90638bbada180ce1d2127d3c0988d9412980491"
+    },
+    "reports/historical/VERIFICATION_V0.7.md": {
+      "bytes": 1882,
+      "sha256": "af458b40f527dc7ed595fe5cbbbc2477451f295b436577054df267967c836546"
+    },
+    "reports/historical/environment.json": {
+      "bytes": 302,
+      "sha256": "9d160dcf3bed138aee0304bc2d87f83b8cf8dda1f5a262334d4f82c07ae4f17b"
+    },
+    "reports/historical/junit-v0.6.xml": {
+      "bytes": 5680,
+      "sha256": "70673ec2e08ec96726a6c789b11f882db704931375b2c4ae1bf6e9e678b66df3"
+    },
+    "reports/historical/junit-v0.7.xml": {
+      "bytes": 6833,
+      "sha256": "a67c84cc3e5612026dbed7c3bb88cba8e47a7c9a2f3b1ccf0ccf01132a783a16"
+    },
+    "reports/historical/junit-v0.8.xml": {
+      "bytes": 7081,
+      "sha256": "056c69307d6369fd5c0080b7e3e1d353a622d3442c5ab9bd912c4e66d1a69801"
+    },
+    "reports/junit-v0.9.xml": {
+      "bytes": 8438,
+      "sha256": "5ba6f280fc859f8c6cd881d5530a2dd50cbd1642ee4519bedb9b2a823d6eebbd"
+    },
+    "requirements-dev.txt": {
+      "bytes": 70,
+      "sha256": "dda703b864461e46539c7857df227284c9f740e491bcc2596f5f0304854e008f"
+    },
+    "requirements-ml.txt": {
+      "bytes": 54,
+      "sha256": "d553a94fd479642007e74d70d2fe35e5163be159bc53b3148f13dfc300f8e3e3"
+    },
+    "requirements.txt": {
+      "bytes": 113,
+      "sha256": "29fcd151336aaa3517a4cf4cbbe99174cac754442825b897f46d74a314935b75"
+    },
+    "scripts/check-release-windows.bat": {
+      "bytes": 633,
+      "sha256": "a6102f26c6d54bc233e686de4b322f4317495a02800d8a93de80b5f5e05069f2"
+    },
+    "scripts/clinical_readiness_audit.py": {
+      "bytes": 6802,
+      "sha256": "9f18f7b7ea3489ee527c157edfdf512ea1149d6ecdaa2a70cac08aab15b42e6c"
+    },
+    "scripts/environment-report.py": {
+      "bytes": 524,
+      "sha256": "7d87f838b083bba1559df3ab9964a6d2a797f63c74df9e09b30db8ad1ca1bb57"
+    },
+    "scripts/prepare-train-windows.bat": {
+      "bytes": 802,
+      "sha256": "741aa286a66b6ff028dbd078feea6315cba300be0abe5012cf986f18fb380915"
+    },
+    "scripts/publication_audit.py": {
+      "bytes": 5985,
+      "sha256": "7ec3c7e606e9c6c18fa29bf9bef06dcd5e632053fa643e7f1b11f48171da4b61"
+    },
+    "scripts/start-review-windows.bat": {
+      "bytes": 462,
+      "sha256": "8d035d89b688556c2e5e2f6a98f0fc3f485bda586b7b5644b62b85d76327f90a"
+    },
+    "scripts/start-windows.bat": {
+      "bytes": 511,
+      "sha256": "873d7d9d4b51fd0766b241e4e99d00f32ae54bdd2b1005d9c485e891e1da3416"
+    },
+    "scripts/test-windows.bat": {
+      "bytes": 138,
+      "sha256": "c13ced1491594b62a4e78e99a038efd702b3fcf5ea5bab6358d05a409c80fbfb"
+    },
+    "scripts/train-vtac-windows.bat": {
+      "bytes": 1034,
+      "sha256": "08eb7af6dc638760a1fee11e96a08669d6a8a24fe21dc5f8390f260d4e8b66e2"
+    },
+    "scripts/verify_dataset_sha256.py": {
+      "bytes": 3577,
+      "sha256": "a4abd5afa22d791c56891cd1e572b968dc8b7442a57a63584a9c00c732fbe9e1"
+    },
+    "tests/conftest.py": {
+      "bytes": 286,
+      "sha256": "51f63fff7cf32a8fe63a233f03efb523f14aacf17817427d077370b2dd32b2f6"
+    },
+    "tests/test_api.py": {
+      "bytes": 2105,
+      "sha256": "8c45dbbe5aecf25755fdac5779fe00f0002772cb01743ff21f7dd5d7b730b041"
+    },
+    "tests/test_auto_train.py": {
+      "bytes": 1657,
+      "sha256": "4661eb26c4a36d15e638ba735e670d48075241002333df65aeaa0621981813d0"
+    },
+    "tests/test_benchmark.py": {
+      "bytes": 1207,
+      "sha256": "52b68ca9d3bd7c9b6af9a29c93048edf9f5ba48878451ec6369a5c15528dd010"
+    },
+    "tests/test_clinical_readiness.py": {
+      "bytes": 834,
+      "sha256": "de166909e11a004d03b7e2f83dad23a83e2c88b627528b349c7cd4dd9535f841"
+    },
+    "tests/test_clinician_pilot.py": {
+      "bytes": 4566,
+      "sha256": "19319992a51c917fd94bf84e7df792036a218bb4a3158b42911bec4a951f76f4"
+    },
+    "tests/test_csv.py": {
+      "bytes": 1006,
+      "sha256": "d04b96af0d9ab77b7137c9e536b89ef2ab320b784317cef2a7efc5ac89a72596"
+    },
+    "tests/test_evidence.py": {
+      "bytes": 5693,
+      "sha256": "b48819c341fbc4aa1755045094d2f236e319e66a1aa1f51ecde073d0dea314c6"
+    },
+    "tests/test_publication_audit.py": {
+      "bytes": 664,
+      "sha256": "b0e203877d94f1a15585c2e5da0fe47d10982293579db6208de09a5d722510dc"
+    },
+    "tests/test_release_safety.py": {
+      "bytes": 2953,
+      "sha256": "897a7b3f2635862819d128d5fd5ddb4c0131aed470ee7b0660c41ccce0539ec4"
+    },
+    "tests/test_research_model.py": {
+      "bytes": 4459,
+      "sha256": "4375634523e4e781c3fe0e21c065f958f27358270b0a66d77611b7f05e55961e"
+    },
+    "tests/test_safety_hardening09.py": {
+      "bytes": 8769,
+      "sha256": "61f820037ec22b01048f57df8a855b64362eddd69c614b806f11cd68c8517ffe"
+    },
+    "tests/test_signals.py": {
+      "bytes": 2037,
+      "sha256": "2dc2d2b8326ae98d1fd4696bb40997da247aa34d53a3f7852f184d01dda25a53"
+    },
+    "tests/test_wfdb_import.py": {
+      "bytes": 4624,
+      "sha256": "95e474f3c7a18d7eec7d630f522e8d3a1b29f963ca06b04b99803afac985f667"
+    },
+    "waveassure/__init__.py": {
+      "bytes": 22,
+      "sha256": "1fd3564596fb35b79144f2cffd5d5f01198b357ada9e8ad533e38e63ef3fdae8"
+    },
+    "waveassure/alarm_model.py": {
+      "bytes": 10896,
+      "sha256": "cebde22e14adc1f6b8f425779b326525c1986cdcfd12109b1796aa8a855d26a4"
+    },
+    "waveassure/api.py": {
+      "bytes": 16012,
+      "sha256": "5f16b8ed0b0bd3709920397f1d9eb9d569513ca430932209ec543fb6bec3bd74"
+    },
+    "waveassure/csv_input.py": {
+      "bytes": 2304,
+      "sha256": "0efa936b255f53b02e2193a14996f1f1b0cc6b8f64146b4e91e0b9a0f2375b3a"
+    },
+    "waveassure/evidence.py": {
+      "bytes": 6766,
+      "sha256": "b4f567b797dc6a13e044f29915d6b6fdb66bf8f97fa5d3552239c8a6dcdda96c"
+    },
+    "waveassure/report_html.py": {
+      "bytes": 3610,
+      "sha256": "e585f0e1da0c7f5bec3301af388474b6b4bbdccd170456b5092c081398ec3e2d"
+    },
+    "waveassure/reviewer_pilot.py": {
+      "bytes": 9442,
+      "sha256": "aecf82837ee9fc93b6f90cf190fbf250bd13ea55e8e96aed97a5c35ad273bf2b"
+    },
+    "waveassure/schemas.py": {
+      "bytes": 2284,
+      "sha256": "d50517fb21bca9220defc54e6c17cdf10c5494058dff97f7adfbd41861f43128"
+    },
+    "waveassure/signals.py": {
+      "bytes": 9815,
+      "sha256": "e1a8a9c04728d46c79a755a569e56c2397c03280b9ddc770c36ce8980059c42f"
+    },
+    "waveassure/storage.py": {
+      "bytes": 4277,
+      "sha256": "0881128d0227c814f7b0391d88f58a040d565786112170666a33b2599ca1cbc5"
+    },
+    "waveassure/wfdb_input.py": {
+      "bytes": 6055,
+      "sha256": "74eb883878719ca5f1ed8a4e948941bbf9cf1c3690ed9aa25e2f89982d7fa3da"
+    },
+    "web/app.js": {
+      "bytes": 19893,
+      "sha256": "a271ca1e241c2350f9919a7e5eae17259b1adfa544cc7197c8ee5adde2edf612"
+    },
+    "web/index.html": {
+      "bytes": 12892,
+      "sha256": "f59cad390aa76dc13c9c142c01965ab62d506f2283d70a568f48d36a7d4d83fd"
+    },
+    "web/report.css": {
+      "bytes": 621,
+      "sha256": "9d6efbb615e92e825bb6c9bb81aa02eb627e336a5f1048c87e4da648d7c40941"
+    },
+    "web/review.css": {
+      "bytes": 440,
+      "sha256": "420c423b4cfe878896ecd0c83170f42e74fc562cdc6534fcef362a8c44644b19"
+    },
+    "web/review.html": {
+      "bytes": 889,
+      "sha256": "efebad6bc7e10d35738ffc54a50616fe61dd52d9758c260920ab26fbde4fff47"
+    },
+    "web/review.js": {
+      "bytes": 4116,
+      "sha256": "c6ae011e8ac6ae6401d3130cdcc888a6ac26cad3ad8d256b506fe73aeb7d9a1d"
+    },
+    "web/styles.css": {
+      "bytes": 13806,
+      "sha256": "e85db890af7b0883e128b0a8293fead2fe839d4dac3b17b70d998b02391f8b79"
+    }
+  },
+  "hospital_clinical_authorization": false,
+  "medical_device_certification": false,
+  "model_accuracy_claim": "NONE",
+  "release": "0.9.0",
+  "release_type": "research_software_safety_hardening",
+  "synthetic_fixture_tests_passed": 76,
+  "verification_scope": "local Linux tests only; Windows CI configured but not witnessed"
+}

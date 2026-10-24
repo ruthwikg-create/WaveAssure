@@ -1,0 +1,128 @@
+{
+  "schema": "waveassure-evidence-v1",
+  "created_at_utc": "EXAMPLE_NO_REAL_PATIENT_DATA",
+  "purpose": "Offline retrospective biomedical signal quality documentation",
+  "scope": "RESEARCH_ONLY_NOT_FOR_CLINICAL_DECISIONS",
+  "data_class": "SYNTHETIC",
+  "record": {
+    "id": "SYNTHETIC-EXAMPLE-NOT-REAL-PATIENT",
+    "title": "Synthetic baseline \u00b7 72 BPM",
+    "origin": "synthetic",
+    "source_reference": "WaveAssure deterministic educational simulator seed=42",
+    "parent_id": null,
+    "fault": null,
+    "sample_rate_hz": 250.0,
+    "sample_count_per_channel": 3000,
+    "duration_s": 12.0,
+    "channel_count": 3,
+    "channels": [
+      {
+        "name": "ECG",
+        "kind": "ECG",
+        "unit": "mV"
+      },
+      {
+        "name": "PPG",
+        "kind": "PPG",
+        "unit": "a.u."
+      },
+      {
+        "name": "ABP",
+        "kind": "ABP",
+        "unit": "mmHg"
+      }
+    ],
+    "payload_sha256": "281af4d4252677b601ca001e9ca675b2e400eb9dde3b4d1bb41bd3ec58b0f336"
+  },
+  "reference_annotation": {
+    "label": "Unlabeled",
+    "type": "NOT_AVAILABLE",
+    "event_type": null,
+    "event_time_s": null,
+    "annotation_scope": null,
+    "independently_verified_by_waveassure": false
+  },
+  "descriptive_measurements": {
+    "entire_recording": {
+      "start_s": 0.0,
+      "end_s": 12.0,
+      "interval": "[start_s, end_s)",
+      "data_window_available": true,
+      "channels": [
+        {
+          "channel": "ECG",
+          "kind": "ECG",
+          "unit": "mV",
+          "total_samples": 3000,
+          "valid_samples": 3000,
+          "missing_samples": 0,
+          "missing_fraction": 0.0,
+          "minimum": -0.320778,
+          "maximum": 1.133863,
+          "mean": 0.057167,
+          "standard_deviation": 0.155437,
+          "median": 0.014956
+        },
+        {
+          "channel": "PPG",
+          "kind": "PPG",
+          "unit": "a.u.",
+          "total_samples": 3000,
+          "valid_samples": 3000,
+          "missing_samples": 0,
+          "missing_fraction": 0.0,
+          "minimum": 0.535,
+          "maximum": 1.164882,
+          "mean": 0.709841,
+          "standard_deviation": 0.207672,
+          "median": 0.578753
+        },
+        {
+          "channel": "ABP",
+          "kind": "ABP",
+          "unit": "mmHg",
+          "total_samples": 3000,
+          "valid_samples": 3000,
+          "missing_samples": 0,
+          "missing_fraction": 0.0,
+          "minimum": 79.000266,
+          "maximum": 115.999868,
+          "mean": 92.047371,
+          "standard_deviation": 13.479051,
+          "median": 87.506895
+        }
+      ]
+    }
+  },
+  "measurement_method": {
+    "algorithm": "waveassure-window-statistics-v1",
+    "missing_values": "null only; no interpolation",
+    "standard_deviation": "population standard deviation (ddof=0)",
+    "sample_intervals": "rounded to nearest integer sample; [start, end)",
+    "calibration": "Units inherited from imported WFDB header or caller-supplied synthetic/CSV schema",
+    "uncertainty": "No propagated calibration uncertainty provided; outputs are descriptive sample statistics"
+  },
+  "integrity": {
+    "record_payload_sha256": "281af4d4252677b601ca001e9ca675b2e400eb9dde3b4d1bb41bd3ec58b0f336",
+    "checked_on_read": true,
+    "format_level_check_at_import": false,
+    "official_dataset_sha256_verified": false,
+    "audit_chain_currently_valid": false,
+    "audit_log_is_digitally_signed": false
+  },
+  "decision_support": {
+    "clinical_alarm_assessment": "NOT_PERFORMED",
+    "independent_true_false_vt_model_assessment": "NOT_INCLUDED_IN_THIS_REPORT",
+    "clinical_interpretation": null,
+    "patient_management_recommendation": null,
+    "alarm_prioritization": null
+  },
+  "limitations": [
+    "Measurements are descriptive, not diagnostic: there are no validated physiological reference ranges.",
+    "Dataset True/False is an existing annotation, not a WaveAssure prediction or definitive independent clinical adjudication.",
+    "A matching imported WFDB digital-sample checksum is not proof of authenticated source or original PhysioNet SHA-256 integrity.",
+    "Sampling, calibration, de-identification, and external sensor accuracy were not independently verified.",
+    "No clinical trial, clinical validation, regulatory clearance, IEC 62304 certification or ISO 14971 conformance is claimed.",
+    "Never use this report for clinical action, alarm suppression or patient care."
+  ]
+}

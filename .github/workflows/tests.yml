@@ -1,0 +1,38 @@
+name: Offline research software verification
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  python-fixtures:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install development requirements
+        run: python -m pip install -r requirements-dev.txt
+      - name: Compile python modules
+        run: python -m compileall -q waveassure benchmarks scripts
+      - name: Run synthetic fixture and adversarial tests
+        run: python -m pytest -q --junitxml=reports/junit-v0.9.xml
+      - name: Generate conservative release decision
+        run: python scripts/clinical_readiness_audit.py
+      - name: Preserve verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-verification-${{ matrix.os }}-${{ matrix.python-version }}
+          path: |
+            reports/junit-v0.9.xml
+            reports/CLINICAL_READINESS.md
+            reports/CLINICAL_READINESS.json
+          if-no-files-found: ignore

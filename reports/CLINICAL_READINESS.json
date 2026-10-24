@@ -1,0 +1,130 @@
+{
+  "generated_at": "2026-10-24T11:10:27.485617+00:00",
+  "scope": "Source-level engineering readiness review only",
+  "model_artifact_status": "ABSENT",
+  "model_file_sha256": null,
+  "gates": [
+    {
+      "id": "INTENDED_USE",
+      "requirement": "Research-only intended use specified",
+      "evidence_present": true,
+      "limitation": "internal documentation only"
+    },
+    {
+      "id": "RISK_REGISTER",
+      "requirement": "Preliminary hazards recorded",
+      "evidence_present": true,
+      "limitation": "not a completed ISO 14971 risk management file"
+    },
+    {
+      "id": "REQUIREMENTS",
+      "requirement": "Preliminary requirements traceability",
+      "evidence_present": true,
+      "limitation": "not signed-off complete traceability"
+    },
+    {
+      "id": "LOCAL_BOUNDARY",
+      "requirement": "Local-only request filter present",
+      "evidence_present": true,
+      "limitation": "not suitable for hospital network"
+    },
+    {
+      "id": "LIVE_ALARM_CONTROL",
+      "requirement": "No live bedside alarm control",
+      "evidence_present": true,
+      "limitation": "not a validated system-level guarantee"
+    },
+    {
+      "id": "MODEL_ARTIFACT",
+      "requirement": "Local model artifact present",
+      "evidence_present": false,
+      "limitation": "ABSENT"
+    },
+    {
+      "id": "MODEL_RESULTS",
+      "requirement": "Local metrics file present",
+      "evidence_present": false,
+      "limitation": "unverified provenance and performance even if file is present"
+    },
+    {
+      "id": "MODEL_ATTESTATION_GUARD",
+      "requirement": "Pinned research model signature guard exists",
+      "evidence_present": true,
+      "limitation": "engineering-only check; cannot prove training authenticity or clinical approval"
+    },
+    {
+      "id": "REVIEW_MODE_GUARD",
+      "requirement": "Separate research review route isolation exists",
+      "evidence_present": true,
+      "limitation": "research-mode restriction only; not hospital RBAC or clinical blinding"
+    },
+    {
+      "id": "MULTIUSER_AUTH",
+      "requirement": "Hospital-grade authentication and authorization assessed",
+      "evidence_present": false,
+      "limitation": "missing dedicated authenticated accounts, roles, access reviews"
+    },
+    {
+      "id": "PHI_GOVERNANCE",
+      "requirement": "Patient-data safeguards audited",
+      "evidence_present": false,
+      "limitation": "no certified privacy controls, DPA, validated de-identification, retention policy"
+    },
+    {
+      "id": "INDEPENDENT_BLINDING",
+      "requirement": "Independent blinded clinical review verified",
+      "evidence_present": false,
+      "limitation": "reference labels accessible through engineering API"
+    },
+    {
+      "id": "VALIDATED_AI",
+      "requirement": "External and independent clinical validation signed",
+      "evidence_present": false,
+      "limitation": "unperformed; no real-data held-out results independently verified"
+    },
+    {
+      "id": "QMS_AUDIT",
+      "requirement": "Manufacturer QMS independently audited",
+      "evidence_present": false,
+      "limitation": "no organization-wide certified QMS"
+    },
+    {
+      "id": "PRODUCT_STANDARDS",
+      "requirement": "Applicable standards independently assessed",
+      "evidence_present": false,
+      "limitation": "no accredited conformity assessment available"
+    },
+    {
+      "id": "SITE_ETHICS",
+      "requirement": "Institutional Ethics Committee approval for specific study verified",
+      "evidence_present": false,
+      "limitation": "no signed approval submitted or independently confirmed"
+    },
+    {
+      "id": "CDSCO_PERMISSION",
+      "requirement": "Applicable regulator permissions verified",
+      "evidence_present": false,
+      "limitation": "risk class and applicability require regulatory determination"
+    },
+    {
+      "id": "HOSPITAL_AGREEMENT",
+      "requirement": "Hospital sponsor/PI/site data agreement verified",
+      "evidence_present": false,
+      "limitation": "no hospital sponsor, PI or site agreement"
+    },
+    {
+      "id": "CYBERSECURITY",
+      "requirement": "Penetration, threat model and software update lifecycle independently audited",
+      "evidence_present": false,
+      "limitation": "not independently assessed"
+    }
+  ],
+  "gate_summary": {
+    "completed_provisional_checks": 7,
+    "total_checks": 19
+  },
+  "release_decision": "BLOCKED_FOR_CLINICAL_USE",
+  "permissions_granted": false,
+  "approval_evidence": "None independently verified",
+  "caution": "The tool cannot determine legal classification, validate a model, certify standards, or grant hospital permission."
+}

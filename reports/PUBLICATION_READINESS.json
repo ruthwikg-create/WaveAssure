@@ -1,0 +1,31 @@
+{
+  "scope": "open-source local research-software release (not clinical deployment)",
+  "software_release_checklist": "candidate_for_maintainer_review",
+  "missing_files": [],
+  "automated_tests": {
+    "available": true,
+    "tests": 76,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "evidence": "reports/junit-v0.9.xml"
+  },
+  "research_evidence": {
+    "trained_model_present": false,
+    "metrics_present": false,
+    "genuine_research_results_verified": false,
+    "comment": "No genuine model or held-out VTaC performance evidence bundled."
+  },
+  "clinical_use_approval": false,
+  "clinical_accuracy_validated": false,
+  "peer_review_completed": false,
+  "manuscript_results_readiness": "blocked_without_independent_real_data_evaluation",
+  "standards_certified": false,
+  "limitations": [
+    "Passing software unit tests does not demonstrate medical efficacy.",
+    "The baseline must be evaluated on adequate expert-labelled VTaC data.",
+    "A small development subset is not a publishable clinical validation cohort.",
+    "Independent prospective/multi-centre validation, approvals and controls remain unperformed.",
+    "This source code is local only, has no multiuser authorization, TLS or clinical audit assurances."
+  ]
+}

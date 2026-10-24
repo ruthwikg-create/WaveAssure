@@ -1,0 +1,17 @@
+Artifact ID,Evidence/approval owner,Current status,Evidence location/ID,Required external reviewer,Notes
+REG-01,Legal manufacturer / sponsor,NOT APPOINTED,,Regulatory lead,Determine organizational applicant
+REG-02,Locked clinical intended-use statement,NOT APPROVED,,Clinical PI and RA,Current README is research-only
+REG-03,CDSCO classification or formal regulatory determination,NOT OBTAINED,,CDSCO,Depends on intended use
+QMS-01,ISO 13485 quality management system,NOT ESTABLISHED,,Accredited auditor,Company QMS not code test
+RSK-01,ISO 14971 complete risk file,INCOMPLETE,,QA RA and clinical safety lead,Existing hazard spreadsheet preliminary
+SDLC-01,IEC 62304 compliant SDLC objective evidence,NOT DEMONSTRATED,,Qualified external assessor,Need full lifecycle records
+CYB-01,Product cybersecurity assessment,NOT DONE,,Independent assessor,Not network deployable
+VAL-01,Model real patient-data training evidence,NOT AVAILABLE,,ML/clinical verification lead,Need both classes
+VAL-02,Independent clinical accuracy and external-site assessment,NOT DONE,,Independent statistician and PI,Predeclared end points
+VAL-03,Usability human-factors validation,NOT DONE,,Usability lead,IEC 62366-1 as applicable
+EC-01,Named institution's ethics committee written decision,NOT OBTAINED,,Registered ethics committee,Before new hospital research
+CDSCO-01,Applicable test-licence MD-13,NOT OBTAINED,,CDSCO,If required for planned installation
+CDSCO-02,Applicable investigation permission MD-23,NOT OBTAINED,,CDSCO,If IMD clinical investigation route applies
+CTRI-01,CTRI registration if applicable,NOT OBTAINED,,CTRI and site PI,Before trial initiation
+SITE-01,Signed hospital protocol and data-use agreement,NOT OBTAINED,,Hospital authorized signatory and PI,No hospital deployment
+MKT-01,Appropriate marketing/manufacturing authorizations,NOT OBTAINED,,CDSCO or state LA according to class,Required for regulated commercial use

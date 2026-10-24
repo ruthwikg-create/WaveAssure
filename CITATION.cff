@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use WaveAssure, cite the software and separately cite PhysioNet VTaC when using its dataset."
+title: "WaveAssure: Physiological Signal Assurance Workbench"
+type: software
+version: 0.5.0
+date-released: 2026-10-24
+authors:
+  - name: "WaveAssure Contributors"
+repository-code: "https://github.com/REPLACE-WITH-YOUR-REPOSITORY"
+license: MIT
+keywords:
+  - biomedical-engineering
+  - ventricular-tachycardia
+  - research-software
+  - reproducibility

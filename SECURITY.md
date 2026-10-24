@@ -11,10 +11,10 @@ Security issues: report privately to the repository maintainer after the public 
 - Cross-origin requests are refused; explicit security, cache, CSP and framing headers are present.
 - Strict bounded request body length (content-length), schema-validated API input, constrained file imports.
 - Data source preserved via record checksums and hash-linked local audit history.
-- Optional VTaC SHA-256 manifest verification; model artifacts are JSON with a corruption-detection checksum, **not a signature**.
+- Optional VTaC SHA-256 manifest verification. Research model loading now requires both a checksum and a separately pinned Ed25519 signature of attestation metadata. This confirms integrity relative to a configured key, **not the accuracy or truth of provenance claims**.
 
 ## Known gaps
 
-There is **no** authentication, role-based access, TLS, encryption at rest, externally anchored audit log, CSRF token, rate limiting, independent security audit, or secure multi-user deployment. Host/Origin checks do not create a secure deployment boundary behind a reverse proxy. Local users and processes can modify model JSON plus checksum or rewrite the audit DB. This application must remain local-only; do not bypass its guards.
+There is **no hospital-grade** account authentication, role-based authorization, TLS, encryption at rest, externally anchored audit log, CSRF token, rate limiting, independent security audit, or secure multi-user deployment. The dedicated review mode uses only a shared secret and process-level API separation; it is not independently blinded. Host/Origin checks do not create a secure deployment boundary behind a reverse proxy. Local users and processes can rewrite the audit DB or substitute their own trust keys. This application must remain local-only; do not bypass its guards.
 
 A real clinical/hosted application requires a separate security architecture, authorization and privacy threat assessment, vulnerability management, software bill of materials, controlled third-party data handling, and formal verification.
