@@ -46,7 +46,7 @@ async function loadRecord(id){
   if(isWFDB){ $('windowSeconds').value='30'; $('windowStart').max=Math.max(0,Math.floor(r.analysis.duration_s-10)); $('windowStart').value=Math.min(285,Number($('windowStart').max)); text('windowStartValue',$('windowStart').value+' s'); }
   showQuality(r.analysis.quality_checks, r.metadata.origin);
   loadEvidence(id);
-  if(window.innerWidth<700)window.scrollTo({top:0,behavior:'smooth'});
+  if(window.innerWidth<700)window.scrollTo({top:0,behavior:document.documentElement.dataset.motion==='on'?'smooth':'instant'});
   return true;
  }catch(e){if(sequence===recordRequestSequence)toast(e.message);return false}
 }
@@ -55,16 +55,16 @@ function draw(canvas,w){
  canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);
  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
  const pad={left:13,right:10,top:8,bottom:13};const H=height-pad.top-pad.bottom;const W=width-pad.left-pad.right;
- const colors={ECG:'#84cdb9',PPG:'#d9b67d',ABP:'#a4aaca'};
- ctx.strokeStyle='#2a3b41';ctx.lineWidth=1;
+ const palette=getComputedStyle(document.documentElement);const colors={ECG:palette.getPropertyValue('--wave-ecg').trim(),PPG:palette.getPropertyValue('--wave-ppg').trim(),ABP:palette.getPropertyValue('--wave-abp').trim()};
+ ctx.strokeStyle=palette.getPropertyValue('--grid').trim();ctx.lineWidth=1;
  for(let j=0;j<5;j++){const y=pad.top+j*H/4;ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(width-pad.right,y);ctx.stroke()}
  for(let j=0;j<9;j++){const x=pad.left+j*W/8;ctx.beginPath();ctx.moveTo(x,pad.top);ctx.lineTo(x,height-pad.bottom);ctx.stroke()}
  const valid=w.values.filter(x=>x!==null&&Number.isFinite(x));if(!valid.length)return;
  let min=Math.min(...valid),max=Math.max(...valid);const range=Math.max(1e-6,max-min);min-=range*.1;max+=range*.1;
- const tmin=w.t[0]||0;const tmax=w.t[w.t.length-1]||1;const trange=Math.max(.001,tmax-tmin);ctx.strokeStyle=colors[w.kind]||'#84cdb9';ctx.lineWidth=1.4;ctx.lineJoin='round';ctx.beginPath();let started=false;
+ const tmin=w.t[0]||0;const tmax=w.t[w.t.length-1]||1;const trange=Math.max(.001,tmax-tmin);ctx.strokeStyle=colors[w.kind]||colors.ECG;ctx.lineWidth=1.4;ctx.lineJoin='round';ctx.beginPath();let started=false;
  for(let i=0;i<w.values.length;i++){const v=w.values[i];if(v===null||!Number.isFinite(v)){started=false;continue}const x=pad.left+(w.t[i]-tmin)/trange*W,y=pad.top+(max-v)/(max-min)*H;if(!started){ctx.moveTo(x,y);started=true}else{ctx.lineTo(x,y)}}ctx.stroke();
- ctx.font='10px system-ui';ctx.fillStyle='#71898c';ctx.fillText(tmin.toFixed(1)+' s',pad.left,height-1);ctx.fillText(tmax.toFixed(1)+' s',width-55,height-1);
- if(current && current.metadata.origin==='wfdb_research' && tmin<=300 && tmax>=300){const mark=pad.left+(300-tmin)/trange*W;ctx.beginPath();ctx.setLineDash([4,3]);ctx.strokeStyle='#e2a475';ctx.moveTo(mark,pad.top);ctx.lineTo(mark,height-pad.bottom);ctx.stroke();ctx.setLineDash([]);}
+ ctx.font='10px system-ui';ctx.fillStyle=palette.getPropertyValue('--muted').trim();ctx.fillText(tmin.toFixed(1)+' s',pad.left,height-1);ctx.fillText(tmax.toFixed(1)+' s',width-55,height-1);
+ if(current && current.metadata.origin==='wfdb_research' && tmin<=300 && tmax>=300){const mark=pad.left+(300-tmin)/trange*W;ctx.beginPath();ctx.setLineDash([4,3]);ctx.strokeStyle=palette.getPropertyValue('--orange').trim();ctx.moveTo(mark,pad.top);ctx.lineTo(mark,height-pad.bottom);ctx.stroke();ctx.setLineDash([]);}
 }
 function showQuality(channels, origin){
  const cont=$('quality');cont.replaceChildren();
@@ -163,20 +163,20 @@ $('assessBtn').addEventListener('click',async()=>{
 loadResearchModelStatus();
 
 // Local retrospective usability pilot. Deliberately NOT a medical trial.
-let pilotSession=null, pilotCase=null;
+let pilotSession=null, pilotCase=null, pilotWaveforms=[];
 function renderPilot(){
   if(!pilotSession){text('pilotProgress','No session started');text('pilotSessionId','—');$('pilotFinalize').disabled=true;$('pilotExport').disabled=true;return}
   text('pilotProgress',pilotSession.completed_cases+' / '+pilotSession.total_cases+' reviewed · '+(pilotSession.completed?'Finalized':'Local session'));text('pilotSessionId',pilotSession.id);
   $('pilotFinalize').disabled=pilotSession.completed||pilotSession.completed_cases!==pilotSession.total_cases;
   $('pilotExport').disabled=!pilotSession.completed;
   const next=pilotSession.cases.find(c=>!c.reviewed);
-  if(!next){pilotCase=null;text('pilotCaseStatus',pilotSession.completed?'Session finalized. Download report to view dataset reference comparisons.':'Every case reviewed. Finalize to unlock comparison report.');$('pilotSubmit').disabled=true;$('pilotPlots').replaceChildren();return}
+  if(!next){pilotCase=null;pilotWaveforms=[];text('pilotCaseStatus',pilotSession.completed?'Session finalized. Download report to view dataset reference comparisons.':'Every case reviewed. Finalize to unlock comparison report.');$('pilotSubmit').disabled=true;$('pilotPlots').replaceChildren();return}
   showPilotCase(next.record_id);
 }
 async function showPilotCase(id){
   try {
     const result=await request('/api/pilot/sessions/'+pilotSession.id+'/cases/'+id);
-    pilotCase=id;text('pilotCaseStatus','Case '+result.case_number+' / '+pilotSession.total_cases+' · 285–300 seconds · dataset label masked');
+    pilotCase=id;pilotWaveforms=result.waveforms;text('pilotCaseStatus','Case '+result.case_number+' / '+pilotSession.total_cases+' · 285–300 seconds · dataset label masked');
     $('pilotPlots').replaceChildren();
     for(const w of result.waveforms){
       const wrap=el('div','plot'),info=el('div','plot-info');info.append(el('strong','',w.name||w.kind),el('small','',w.unit+' · pre-alarm waveform'));
@@ -215,4 +215,10 @@ $('pilotExport').addEventListener('click',async()=>{
  if(!pilotSession||!pilotSession.completed)return;
  try {const r=await request('/api/pilot/sessions/'+pilotSession.id+'/export');const blob=new Blob([JSON.stringify(r,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='waveassure-review-'+pilotSession.id.slice(0,8)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
  catch(err){text('pilotMessage','Could not export: '+err.message)}
+});
+
+// Appearance affects presentation only; waveform samples and computed metrics remain unchanged.
+window.addEventListener('waveassure:appearance',()=>{
+ if(current){const plots=document.querySelectorAll('#plots .plot canvas');current.waveforms.forEach((w,i)=>{if(plots[i])draw(plots[i],w);});}
+ if(pilotSession && pilotCase){const canvases=document.querySelectorAll('#pilotPlots .plot canvas');pilotWaveforms.forEach((w,i)=>{if(canvases[i])draw(canvases[i],w);});}
 });

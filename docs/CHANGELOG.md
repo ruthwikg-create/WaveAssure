@@ -1,3 +1,11 @@
+## v0.11.0 — Accessible UI appearance (2026-10-24)
+
+- Add System / Light / Dark theme preference with browser-local persistence.
+- Add restrained premium CSS entry/hover animations and user/OS reduced-motion handling.
+- Add theme-aware waveform colours without modifying research samples or measurements.
+- Style dedicated reviewer interface and preserve unfinished assessments when switching themes.
+- Add contrast-token, static-asset and presentation regression checks. Research-only; no regulatory gate closures.
+
 ## v0.10.0 — Research integrity fixes (2026-10-24)
 
 - Fail closed on corrupted gzip record payloads and mismatched stored metadata.
