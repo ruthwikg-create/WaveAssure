@@ -1,6 +1,8 @@
 'use strict';
 let current = null;
 let researchModelAvailable = false;
+let recordRequestSequence = 0;
+let windowRequestSequence = 0;
 const $ = id => document.getElementById(id);
 const text = (id, value) => { $(id).textContent = String(value); };
 const toast = msg => { const el=$('toast'); el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),4200); };
@@ -20,15 +22,19 @@ function setSection(section){
 }
 const el=(tag,cls,textValue)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(textValue!==undefined)node.textContent=textValue;return node;};
 async function loadRecord(id){
+ const sequence = ++recordRequestSequence;
+ ++windowRequestSequence;
  try{
-  current=await request('/api/records/'+encodeURIComponent(id));
+  const loaded=await request('/api/records/'+encodeURIComponent(id));
+  if(sequence!==recordRequestSequence)return false;
+  current=loaded;
   const r=current, name=r.metadata.title;
   text('metricRecord',name.length>22?name.substring(0,21)+'…':name);
-  text('metricOrigin',r.metadata.origin==='synthetic'?'Synthetic educational data':r.metadata.origin==='wfdb_research'?'Local WFDB • dataset label (not AI): '+r.reference_label:'Unverified research recording');
+  text('metricOrigin',r.metadata.parent_id?'Derived fault experiment · not an expert-labelled recording':r.metadata.origin==='synthetic'?'Synthetic educational data':r.metadata.origin==='wfdb_research'?'Local WFDB • dataset label (not AI): '+r.reference_label:'Unverified research recording');
   text('metricHz',r.sampling_hz+' Hz');
   text('metricQc',r.analysis.status==='TECHNICAL_CHECKS_PASSED'?'No flags*':'Flags found');
   text('waveformSubtitle',r.full_sample_count.toLocaleString()+' samples per channel · '+r.analysis.duration_s+' s');
-  text('sourcePill',r.metadata.origin==='synthetic'?'SYNTHETIC':r.metadata.origin==='wfdb_research'?'LOCAL WFDB · RESEARCH':'UNVERIFIED');
+  text('sourcePill',r.metadata.parent_id?'DERIVED FAULT · RESEARCH':r.metadata.origin==='synthetic'?'SYNTHETIC':r.metadata.origin==='wfdb_research'?'LOCAL WFDB · RESEARCH':'UNVERIFIED');
   $('downloadReport').disabled=false;$('printReport').disabled=false;$('injectBtn').disabled=false;
   $('assessBtn').disabled= !(researchModelAvailable && r.metadata.origin==='wfdb_research' && !r.metadata.parent_id);
   text('assessmentResult','No research inference run for this selection.');
@@ -37,11 +43,12 @@ async function loadRecord(id){
   const container=$('plots');container.replaceChildren();
   for(const w of r.waveforms){const wrap=el('div','plot');const info=el('div','plot-info');info.append(el('strong','',w.name||w.kind),el('small','',w.unit+' · sampled preview'));wrap.append(info);const canvas=el('canvas');canvas.setAttribute('role','img');canvas.setAttribute('aria-label',(w.name||w.kind)+' signal preview');wrap.append(canvas);container.append(wrap);draw(canvas,w)}
   const isWFDB=r.metadata.origin==='wfdb_research'; $('windowTools').classList.toggle('hidden',!isWFDB);
-  if(isWFDB){ $('windowStart').max=Math.max(0,Math.floor(r.analysis.duration_s-10)); $('windowStart').value=Math.min(285,Number($('windowStart').max)); text('windowStartValue',$('windowStart').value+' s'); }
+  if(isWFDB){ $('windowSeconds').value='30'; $('windowStart').max=Math.max(0,Math.floor(r.analysis.duration_s-10)); $('windowStart').value=Math.min(285,Number($('windowStart').max)); text('windowStartValue',$('windowStart').value+' s'); }
   showQuality(r.analysis.quality_checks, r.metadata.origin);
   loadEvidence(id);
   if(window.innerWidth<700)window.scrollTo({top:0,behavior:'smooth'});
- }catch(e){toast(e.message)}
+  return true;
+ }catch(e){if(sequence===recordRequestSequence)toast(e.message);return false}
 }
 function draw(canvas,w){
  const dpr=window.devicePixelRatio||1;const bounds=canvas.getBoundingClientRect();const width=Math.max(260,bounds.width);const height=126;
@@ -104,21 +111,24 @@ async function reloadRecords(){
 }
 async function loadAudit(){
  try{const [audit,req]=await Promise.all([request('/api/audit'),request('/api/requirements')]);const v=audit.verification;text('auditBadge',v.ok?'CHAIN INTACT':'CHECK FAILED');
- text('auditSummary',v.ok?v.events_checked+' hash-linked event(s) verified. This is not a digital signature or externally secured audit log.':'Audit chain verification failed at entry '+v.broken_sequence+'.');
+ text('auditSummary',v.ok?v.events_checked+' hash-linked event(s) verified. This is not a digital signature or externally secured audit log.':'Audit chain verification failed: '+(v.warning||'Corrupted audit history')+'. New writes are blocked.');
  const container=$('auditEvents');container.replaceChildren();audit.events.slice(0,20).forEach(a=>{const node=el('div','audit-entry');node.append(el('strong','',a.event+' · '+a.object_id.slice(0,8)),el('span','',new Date(a.timestamp).toLocaleString()+' · '+a.entry_hash.slice(0,18)+'…'));container.append(node)});
  const list=$('requirements');list.replaceChildren();req.requirements.forEach(r=>{const row=el('div','req');row.append(el('code','',r.id),el('span','',r.description));list.append(row)});
  }catch(e){toast(e.message)}
 }
-async function createDemo(kind){try{const d=await request('/api/demo?kind='+encodeURIComponent(kind),{method:'POST'});await loadRecord(d.id);await reloadRecords();toast('Synthetic recording created.')}catch(e){toast(e.message)}}
+async function createDemo(kind){try{const d=await request('/api/demo?kind='+encodeURIComponent(kind),{method:'POST'});if(await loadRecord(d.id))toast('Synthetic recording created.');await reloadRecords()}catch(e){toast(e.message)}}
 async function createFault(){if(!current)return;try{const fault={kind:$('faultType').value,target:$('faultChannel').value,severity:Number($('faultSeverity').value)};
- const d=await request('/api/records/'+current.metadata.id+'/fault',{method:'POST',body:JSON.stringify(fault)});await loadRecord(d.id);await reloadRecords();toast('Fault injected; original recording preserved.')}catch(e){toast(e.message)}}
-async function importCSV(file){if(!file)return;try{if(file.size>8_000_000)throw Error('CSV exceeds the 8 MB limit.');const csv_text=await file.text();const d=await request('/api/import-csv',{method:'POST',body:JSON.stringify({title:file.name.slice(0,64),csv_text})});await loadRecord(d.id);await reloadRecords();toast('CSV imported as unverified research data.')}catch(e){toast('Import error: '+e.message)}finally{$('csvFile').value=''}}
+ const d=await request('/api/records/'+current.metadata.id+'/fault',{method:'POST',body:JSON.stringify(fault)});if(await loadRecord(d.id))toast('Fault injected; original recording preserved.');await reloadRecords()}catch(e){toast(e.message)}}
+async function importCSV(file){if(!file)return;try{if(file.size>8_000_000)throw Error('CSV exceeds the 8 MB limit.');const csv_text=await file.text();const d=await request('/api/import-csv',{method:'POST',body:JSON.stringify({title:file.name.slice(0,64),csv_text})});if(await loadRecord(d.id))toast('CSV imported as unverified research data.');await reloadRecords()}catch(e){toast('Import error: '+e.message)}finally{$('csvFile').value=''}}
 async function importWFDB(){const path=$('wfdbPath').value.trim();if(!path)return toast('Enter a relative WFDB record path');
  $('importWFDB').disabled=true;
- try{const d=await request('/api/import-wfdb',{method:'POST',body:JSON.stringify({record_path:path})});await loadRecord(d.id);await reloadRecords();toast('Real WFDB recording imported. Reference label is not AI output.')}catch(e){toast('WFDB import: '+e.message)}finally{$('importWFDB').disabled=false}}
+ try{const d=await request('/api/import-wfdb',{method:'POST',body:JSON.stringify({record_path:path})});if(await loadRecord(d.id))toast('Real WFDB recording imported. Reference label is not AI output.');await reloadRecords()}catch(e){toast('WFDB import: '+e.message)}finally{$('importWFDB').disabled=false}}
 async function refreshWindow(){if(!current||current.metadata.origin!=='wfdb_research')return;
  const win=Number($('windowSeconds').value);const start=Math.min(Number($('windowStart').value),Math.max(0,current.analysis.duration_s-win));
- text('windowStartValue',start+' s');try{const r=await request('/api/records/'+current.metadata.id+'/preview?start_s='+start+'&window_s='+win);current.waveforms=r.waveforms;
+ const id=current.metadata.id, seq=++windowRequestSequence;
+ text('windowStartValue',start+' s');try{const r=await request('/api/records/'+encodeURIComponent(id)+'/preview?start_s='+start+'&window_s='+win);
+ if(!current||current.metadata.id!==id||seq!==windowRequestSequence)return;
+ current.waveforms=r.waveforms;
  const cvs=document.querySelectorAll('.plot canvas');r.waveforms.forEach((w,i)=>{if(cvs[i])draw(cvs[i],w)});}catch(e){toast(e.message)}}
 function downloadReport(){if(!current)return;window.location.href='/api/records/'+encodeURIComponent(current.metadata.id)+'/report'}
 for(const item of document.querySelectorAll('.nav'))item.addEventListener('click',()=>setSection(item.dataset.go));

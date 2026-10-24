@@ -16,7 +16,7 @@ from .wfdb_input import import_local_wfdb, configured_root
 from .signals import analyze, demo_record, inject_fault, preview
 from .evidence import create_evidence
 from .report_html import report_html
-from .storage import save, get, list_records, verify, audit_rows
+from .storage import save, get, list_records, verify, audit_rows, StorageIntegrityError
 from .csv_input import parse_csv
 from .alarm_model import read_model, assess, features_from_record
 from .reviewer_pilot import NewSession, Decision, open_session, get_session, case_preview, submit_decision, finalize, export_report
@@ -29,6 +29,13 @@ app=FastAPI(title='WaveAssure Research Workbench',version=__version__,
     description='Offline-first technical waveform assurance; NOT FOR CLINICAL USE.',
     docs_url=None, redoc_url=None)
 app.mount('/static',StaticFiles(directory=str(ROOT/'web')),name='static')
+
+@app.exception_handler(StorageIntegrityError)
+async def evidence_failure(_request: Request, _error: StorageIntegrityError):
+    # Preserve a controlled fail-closed response instead of leaking a traceback.
+    return JSONResponse({'detail': 'Local research evidence integrity failed; action blocked.'},
+                        status_code=409, headers=_SECURITY_HEADERS)
+
 
 # Fail closed for LAN/WAN requests and DNS-rebinding attempts. This is a local
 # research workbench, NOT an authenticated or internet-hostable application.

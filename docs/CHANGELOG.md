@@ -1,3 +1,14 @@
+## v0.10.0 — Research integrity fixes (2026-10-24)
+
+- Fail closed on corrupted gzip record payloads and mismatched stored metadata.
+- Refuse local evidence mutations if audit-chain continuity fails.
+- Snapshot review-session case hashes, rejecting changed recordings during review, finalization and export.
+- Defend against stale overlapping frontend requests and duplicate reviewer-form submission; correct derived-record provenance display.
+- Set Windows engineering launcher to engineering mode, independently of inherited review-mode environment state.
+- Expand negative regression testing and CI JavaScript syntax checks.
+- Browser DOM smoke used in-process HTTP test-client bridging because direct browser localhost navigation is restricted; this is not hospital or Windows acceptance testing.
+- **None of the eight clinical release gates has passed. No genuine VT model training, external validation, or regulatory permission was obtained.**
+
 ## 0.9.0 (2026-10-24)
 
 - Research model loader now requires externally pinned Ed25519 attestation; no self-hash-only activation.
