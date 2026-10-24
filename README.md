@@ -1,9 +1,17 @@
 # WaveAssure
-### Physiological Signal Assurance Workbench · Evidence Integrity Research v0.10.0
+### Physiological Signal Assurance Workbench · Evidence Integrity Research v0.11.0
 
 > **RESEARCH / EDUCATION ONLY. NOT A MEDICAL DEVICE. NOT FOR PATIENT CARE, DIAGNOSIS, ALARM CONTROL, OR CLINICAL MONITORING.**
 
 WaveAssure is an offline-first, full-stack biomedical research project. It loads time series, runs deterministic technical signal-quality checks, injects known faults, generates traceable engineering reports, and provides a separate **optional** training script for the public VTaC ventricular-tachycardia false-alarm benchmark.
+
+See [appearance instructions](docs/APPEARANCE.md) and [actual verification evidence](reports/VERIFICATION_V0.11.md).
+
+**v0.11.0 — Accessible appearance and decorative motion (NOT clinical validation):**
+- Light, Dark and System colour themes across the engineering workbench and dedicated offline reviewer page, with browser-local preference storage.
+- Reduced-motion support via OS accessibility setting and a manual decorative-animation switch. Waveform samples, measurements, and clinical claims are never animated or modified.
+- High-contrast design token palettes checked for WCAG AA text contrast (selected defined foreground/background pairs); visible focus outlines, responsive layouts and theme-aware ECG/PPG/ABP canvas colours.
+- Automated asset/contrast checks and headless Chromium DOM checks with static/mock API transport. Network-based browser acceptance and device/clinical validation remain out of scope.
 
 **v0.10.0 — Evidence integrity and workflow reliability updates (NOT clinical validation):**
 - Corrupt compressed record payloads and mismatched metadata now fail closed instead of returning an unhandled server error.
