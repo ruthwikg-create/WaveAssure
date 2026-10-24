@@ -22,8 +22,12 @@ jobs:
         run: python -m pip install -r requirements-dev.txt
       - name: Compile python modules
         run: python -m compileall -q waveassure benchmarks scripts
+      - name: Validate browser scripts syntax
+        run: |
+          node --check web/app.js
+          node --check web/review.js
       - name: Run synthetic fixture and adversarial tests
-        run: python -m pytest -q --junitxml=reports/junit-v0.9.xml
+        run: python -m pytest -q --junitxml=reports/junit-v0.10.xml
       - name: Generate conservative release decision
         run: python scripts/clinical_readiness_audit.py
       - name: Preserve verification evidence
@@ -32,7 +36,7 @@ jobs:
         with:
           name: research-verification-${{ matrix.os }}-${{ matrix.python-version }}
           path: |
-            reports/junit-v0.9.xml
+            reports/junit-v0.10.xml
             reports/CLINICAL_READINESS.md
             reports/CLINICAL_READINESS.json
           if-no-files-found: ignore

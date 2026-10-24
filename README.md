@@ -1,11 +1,19 @@
 # WaveAssure
-### Physiological Signal Assurance Workbench · Safety Hardening Research v0.9.0
+### Physiological Signal Assurance Workbench · Evidence Integrity Research v0.10.0
 
 > **RESEARCH / EDUCATION ONLY. NOT A MEDICAL DEVICE. NOT FOR PATIENT CARE, DIAGNOSIS, ALARM CONTROL, OR CLINICAL MONITORING.**
 
 WaveAssure is an offline-first, full-stack biomedical research project. It loads time series, runs deterministic technical signal-quality checks, injects known faults, generates traceable engineering reports, and provides a separate **optional** training script for the public VTaC ventricular-tachycardia false-alarm benchmark.
 
-**Release status (v0.9.0):** Research engineering candidate with 76 locally passing fixture-based tests (not clinical or Windows acceptance tests); NOT an approved medical application or peer-reviewed results study. See [reports/PUBLICATION_READINESS.md](reports/PUBLICATION_READINESS.md), [publication/MANUSCRIPT_DRAFT.md](publication/MANUSCRIPT_DRAFT.md), [SECURITY.md](SECURITY.md), and [docs/DATA_RIGHTS.md](docs/DATA_RIGHTS.md). The package contains **no patient waveforms or model trained on real patients**. Source publication is possible after maintainer review and replacing the citation placeholder; an empirical research paper still needs genuine completed benchmark data and assessment.
+**v0.10.0 — Evidence integrity and workflow reliability updates (NOT clinical validation):**
+- Corrupt compressed record payloads and mismatched metadata now fail closed instead of returning an unhandled server error.
+- New record and review writes are blocked when the local audit chain has been altered; this local chain is still neither externally timestamped nor independently protected.
+- Review sessions snapshot each source record checksum and refuse subsequent reviews, finalization, or comparisons if the underlying source changed. These checks do **not** establish independent clinical blinding.
+- The browser workbench rejects stale concurrent waveform responses, resets waveform window controls between recordings, distinguishes fault-derived data from original dataset recordings, and displays accurate audit integrity warnings.
+- Six original new negative-regression tests plus one finalization test added, with **83 passing synthetic-fixture tests**; browser DOM flows were exercised in headless Chromium with an in-process API transport, **not** on a real network deployment or user Windows computer. Independent clinical/clinical-grade end-to-end testing remains missing.
+- The GitHub CI workflow validates JavaScript syntax as well as Python tests.
+
+**Previous v0.9.0 baseline:** Research engineering candidate with 76 locally passing fixture-based tests (not clinical or Windows acceptance tests); NOT an approved medical application or peer-reviewed results study. See [reports/PUBLICATION_READINESS.md](reports/PUBLICATION_READINESS.md), [publication/MANUSCRIPT_DRAFT.md](publication/MANUSCRIPT_DRAFT.md), [SECURITY.md](SECURITY.md), and [docs/DATA_RIGHTS.md](docs/DATA_RIGHTS.md). The package contains **no patient waveforms or model trained on real patients**. Source publication is possible after maintainer review and replacing the citation placeholder; an empirical research paper still needs genuine completed benchmark data and assessment.
 
 **Current release does not contain a pretrained or clinically validated AI model.** It now includes training and JSON-model inference for retrospective research only; no model can be loaded until appropriate labelled data have been trained locally. Clinical alarm classification and suppression remain disabled. Neither passing quality checks nor estimated heart rate implies clinical fitness.
 
