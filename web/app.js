@@ -265,7 +265,10 @@ function csvFieldType(header){
  if(/^(i|ii|iii|avr|avl|avf|v[1-6]?|ecg.*|lead.*)$/.test(h))return 'ECG';
  return '';
 }
-function csvColumnGuess(header){return csvFieldType(header);}
+function csvColumnGuess(header){
+ const type=csvFieldType(header);
+ return type==='identifier'||type==='summary'?'':type;
+}
 function showCSVMapping(file, sequence){
  if(!file)return;
  selectedCSV=file;
@@ -308,9 +311,15 @@ function showCSVMapping(file, sequence){
          ') are not ECG/PPG/ABP waveform samples. They are excluded. Choose actual time-series waveform columns or use a suitable waveform dataset.'
        : 'Choose a measured waveform and confirm its actual units; no physiological values or alarm labels are inferred.';
    const updateReady=()=>{
-     const checked=Array.from(body.querySelectorAll('.channel-use')).some(box=>box.checked);
-     $('importCustomCSV').disabled=Boolean(identifiers.length)||!time.value||!checked;
-     text('csvFormatAdvice',warning+(!time.value?' No elapsed-time column was recognized; select one explicitly if present.':''));
+     const selected=Array.from(body.querySelectorAll('.channel-use')).filter(box=>box.checked);
+     const invalid=selected.filter(box=>['identifier','summary','time'].includes(csvFieldType(box.dataset.column))||
+       box.dataset.column===time.value);
+     $('importCustomCSV').disabled=Boolean(identifiers.length)||!time.value||!selected.length||
+       selected.length>8||invalid.length>0;
+     text('csvFormatAdvice',warning+
+       (!time.value?' No elapsed-time column was recognized; select one explicitly if present.':'')+
+       (invalid.length?' Uncheck non-waveform/elapsed-time columns: '+invalid.map(box=>box.dataset.column).join(', ')+'.':'')+
+       (selected.length>8?' Select no more than 8 waveform columns.':''));
    };
    time.addEventListener('change',updateReady);body.addEventListener('change',updateReady);
    updateReady();
