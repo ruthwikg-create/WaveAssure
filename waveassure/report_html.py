@@ -23,7 +23,7 @@ def report_html(report: dict) -> str:
                 f'<dd>{safe(value)}</dd></div>')
 
     labels = {
-        'SYNTHETIC': 'Synthetic example',
+        'SYNTHETIC': 'SYNTHETIC · Educational example',
         'IMPORTED_WFDB_RESEARCH': 'Imported WFDB research recording',
         'UNVERIFIED_CSV': 'Imported CSV (unverified)',
         'DERIVED_FAULT_EXPERIMENT': 'Derived engineering fault test',
