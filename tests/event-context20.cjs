@@ -17,10 +17,11 @@ value=src(rec('True','user_annotation_unverified'),300);
 assert.match(value.status,/cause unknown/);
 const app=fs.readFileSync(path.join(__dirname,'../web/app.js'),'utf8');
 const api=fs.readFileSync(path.join(__dirname,'../waveassure/api.py'),'utf8');
+const context=fs.readFileSync(path.join(__dirname,'../waveassure/event_context.py'),'utf8');
 for(const label of ['function loadEventContext()', 'function renderChannelEvidence()',
  'channelObservationText(', 'eventContextRequestSequence', 'Event-window raw samples loading.',
  'ecg_morphology', 'Clinical low/high and normality not assessed']) {
- assert.ok((app+api).includes(label),label);
+ assert.ok((app+api+context).includes(label),label);
 }
 assert.ok(api.includes("'/api/records/{record_id}/event-context'"));
 assert.ok(app.includes("window.WaveAssureAlarmEvent.explain(current,time)"));
