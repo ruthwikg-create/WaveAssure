@@ -39,5 +39,39 @@
     }
     return unknown;
   }
-  root.WaveAssureAlarmEvent = Object.freeze({explain});
+  // Human-readable, bounded preview. Keep source-specific nuance without
+  // showing an entire evidence report over the waveform.
+  function brief(record, timeSeconds) {
+    const full = explain(record, timeSeconds);
+    const status = full.status;
+    if (status === 'Reference: genuine VT alarm') {
+      return {
+        title: 'VT alarm · dataset marked true',
+        detail: 'Ventricular tachycardia alarm (source label; not a new diagnosis).'
+      };
+    }
+    if (status === 'Reference: false VT alarm') {
+      return {
+        title: 'VT alarm · dataset marked false',
+        detail: 'This does not confirm a normal heart rhythm.'
+      };
+    }
+    if (status === 'User-marked alarm — cause unknown') {
+      return {
+        title: 'Marked alarm · cause unknown',
+        detail: 'Time entered by user; no verified alarm reason.'
+      };
+    }
+    if (status === 'Derived record — event not verified') {
+      return {
+        title: 'Modified signal · alarm unverified',
+        detail: 'A source alarm label does not carry over to modified data.'
+      };
+    }
+    return {
+      title: 'Alarm type unknown',
+      detail: 'No verified event cause available.'
+    };
+  }
+  root.WaveAssureAlarmEvent = Object.freeze({explain, brief});
 })(typeof window === 'undefined' ? globalThis : window);
