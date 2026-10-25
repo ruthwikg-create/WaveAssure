@@ -29,10 +29,10 @@
     if (motion) {
       const enabled = root.dataset.motion === 'on';
       motion.setAttribute('aria-pressed', String(enabled));
-      motion.setAttribute('aria-label', enabled ? 'Turn decorative animations off' : 'Turn decorative animations on');
-      motion.setAttribute('title', reduced ? 'Animations disabled by system accessibility preference' : (enabled ? 'Disable animations' : 'Enable animations'));
+      motion.setAttribute('aria-label', enabled ? 'Turn interface effects off (recording replay unaffected)' : 'Turn interface effects on (recording replay unaffected)');
+      motion.setAttribute('title', reduced ? 'Interface effects disabled by accessibility preference; waveform replay still works' : (enabled ? 'Disable decorative UI transitions; waveform replay unaffected' : 'Enable decorative UI transitions; waveform replay unaffected'));
       const label = motion.querySelector('[data-motion-label]');
-      if (label) label.textContent = enabled ? 'Motion on' : 'Motion off';
+      if (label) label.textContent = enabled ? 'UI effects on' : 'UI effects off';
       motion.disabled = reduced;
     }
     window.dispatchEvent(new CustomEvent('waveassure:appearance', { detail: { theme: actual, motion: root.dataset.motion } }));

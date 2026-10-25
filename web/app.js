@@ -55,9 +55,44 @@ function toggleReplay(){
  $('replayToggle').textContent='Ⅱ Pause recording';$('replayToggle').setAttribute('aria-pressed','true');
  replay.frame=requestAnimationFrame(replayStep);
 }
+function showAlarmExplanation() {
+ const detail=$('alarmExplanation');
+ const alarm=annotatedAlarm();
+ const interpretation=window.WaveAssureAlarmEvent.explain(current,alarm);
+ detail.replaceChildren();
+ const title=el('h3','',interpretation.status);
+ detail.append(title);
+ if(alarm!==null)detail.append(el('p','alarm-explanation-time','Recorded marker: '+clockTime(alarm)+' ('+alarm.toFixed(3)+' seconds from recording start).'));
+ for(const [label,value] of [
+  ['Recorded reference',interpretation.classification],
+  ['Meaning',interpretation.reason],
+  ['Evidence source',interpretation.source],
+  ['Safety limit',interpretation.disclaimer]
+ ]) {
+  const row=el('div','alarm-explanation-row');row.append(el('strong','',label),el('p','',value));detail.append(row);
+ }
+ detail.classList.remove('hidden');
+ $('explainAlarm').setAttribute('aria-expanded','true');
+ detail.focus({preventScroll:true});
+}
+function alarmMarkerPosition(canvas,w) {
+ const alarm=annotatedAlarm();
+ if(alarm===null || !w || !w.t || w.t.length<2)return null;
+ const tmin=w.t[0],tmax=w.t[w.t.length-1];
+ if(alarm<tmin || alarm>tmax)return null;
+ const width=Math.max(260,canvas.getBoundingClientRect().width);
+ return 13+(alarm-tmin)/Math.max(.001,tmax-tmin)*(width-23);
+}
+function onAlarmCanvasClick(event,canvas,w){
+ const x=alarmMarkerPosition(canvas,w);
+ if(x===null)return;
+ const local=event.clientX-canvas.getBoundingClientRect().left;
+ if(Math.abs(local-x)<=24)showAlarmExplanation();
+}
 function renderAlarm(){
  const alarm=annotatedAlarm();
  $('jumpAlarm').disabled=(alarm===null);
+ $('explainAlarm').disabled=!current;
  if(alarm===null){text('alarmDetail','No alarm timestamp is documented for this recording. WaveAssure cannot infer the original buzzer time.');return;}
  const source=current.alarm_time_source==='dataset_annotation'?'Local VTaC label file (not independently authenticated)':
   current.alarm_time_source==='user_annotation_unverified'?'User-entered timestamp (unverified)':'Legacy VTaC dataset reference';
@@ -104,8 +139,10 @@ async function loadRecord(id){
   text('assessmentResult','No research inference run for this selection.');
   const channelSelect=$('faultChannel');channelSelect.replaceChildren();
   r.waveforms.forEach(w=>{const opt=el('option','',w.name||w.kind);opt.value=w.name||w.kind;channelSelect.append(opt)});
+  $('alarmExplanation').classList.add('hidden');
+  $('explainAlarm').setAttribute('aria-expanded','false');
   const container=$('plots');container.replaceChildren();
-  for(const w of r.waveforms){const wrap=el('div','plot');const info=el('div','plot-info');info.append(el('strong','',w.name||w.kind),el('small','',w.unit+' · sampled preview'));wrap.append(info);const canvas=el('canvas');canvas.setAttribute('role','img');canvas.setAttribute('aria-label',(w.name||w.kind)+' signal preview');wrap.append(canvas);container.append(wrap);draw(canvas,w)}
+  for(const w of r.waveforms){const wrap=el('div','plot');const info=el('div','plot-info');info.append(el('strong','',w.name||w.kind),el('small','',w.unit+' · sampled preview'));wrap.append(info);const canvas=el('canvas');canvas.setAttribute('role','img');canvas.setAttribute('aria-label',(w.name||w.kind)+' signal preview');wrap.append(canvas);container.append(wrap);draw(canvas,w);canvas.addEventListener('click',event=>onAlarmCanvasClick(event,canvas,(current?.waveforms||[]).find(s=>s.name===w.name)||w));canvas.addEventListener('mousemove',event=>{const active=(current?.waveforms||[]).find(s=>s.name===w.name)||w;const x=alarmMarkerPosition(canvas,active);canvas.style.cursor=x!==null&&Math.abs(event.clientX-canvas.getBoundingClientRect().left-x)<=24?'pointer':'default';});}
   $('windowTools').classList.remove('hidden');
   const duration=r.analysis.duration_s;
   const win=duration>=30?30:duration>=10?10:duration>=5?5:duration>=2?2:1;
@@ -318,11 +355,12 @@ $('importWFDBFiles').addEventListener('click',importWFDBFiles);
 $('csvFile').addEventListener('change',event=>showCSVMapping(event.target.files[0]));
 $('importCustomCSV').addEventListener('click',importCSV);
 $('replayToggle').addEventListener('click',toggleReplay);
+$('explainAlarm').addEventListener('click',showAlarmExplanation);
 $('windowStart').addEventListener('input',()=>{pauseReplay();replay.at=Number($('windowStart').value);text('windowStartValue',clockTime(replay.at));});
 $('windowStart').addEventListener('change',()=>refreshWindow());
 $('jumpAlarm').addEventListener('click',()=>{const alarm=annotatedAlarm();if(alarm===null)return;
  pauseReplay();const win=Number($('windowSeconds').value);replay.at=Math.max(0,Math.min(replayLimit(),alarm-win*.75));
- $('windowStart').value=String(replay.at);refreshWindow();});
+ $('windowStart').value=String(replay.at);refreshWindow();showAlarmExplanation();});
 $('windowSeconds').addEventListener('change',()=>{
  pauseReplay();const max=replayLimit();$('windowStart').max=String(max);
  replay.at=Math.min(Number($('windowStart').value),max);
