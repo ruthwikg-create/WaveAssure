@@ -3,6 +3,9 @@
 
 > **RESEARCH / EDUCATION ONLY. NOT A MEDICAL DEVICE. NOT FOR PATIENT CARE, DIAGNOSIS, ALARM CONTROL, OR CLINICAL MONITORING.**
 
+**v0.14.0 UI clarification:** In Waveform review, click **Explain alarm**, **Jump to alarm**, or the orange alarm marker to inspect the available recorded evidence. Expert VTaC True/False labels are explicitly distinguished from user-entered timestamps; neither is a fresh medical diagnosis. The top-bar **UI effects** switch is decorative only; **Play recording** moves the historical waveform. The paired WFDB pickers take the `.hea` header and matching `.dat` samples. See [alarm evidence guide](docs/ALARM_EVENTS.md).
+
+
 WaveAssure is an offline-first, full-stack biomedical research project. It loads time series, runs deterministic technical signal-quality checks, injects known faults, generates traceable engineering reports, and provides a separate **optional** training script for the public VTaC ventricular-tachycardia false-alarm benchmark.
 
 See [interface design decisions](docs/INTERFACE_CRAFT.md), [appearance controls](docs/APPEARANCE.md), and [v0.12 verification evidence](reports/VERIFICATION_V0.12.md).

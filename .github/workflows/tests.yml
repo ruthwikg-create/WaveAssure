@@ -27,6 +27,8 @@ jobs:
           node --check web/app.js
           node --check web/review.js
           node --check web/theme.js
+          node --check web/alarm-event.js
+          node tests/alarm-event14.cjs
       - name: Run synthetic fixture and adversarial tests
         run: python -m pytest -q --junitxml=reports/junit-v0.11.xml
       - name: Test fresh-clone Windows setup script

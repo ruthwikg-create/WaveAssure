@@ -1,3 +1,11 @@
+## 0.14.0 — 2026-10-25 (alarm explanation and motion control clarity)
+
+- Explain what a matched `.hea` header and `.dat` waveform file contain.
+- Rename the misleading `Motion` switch to `UI effects`, separating decorative transitions from historical waveform replay.
+- Add a keyboard-accessible **Explain alarm** button and optional clickable orange alarm timeline markers.
+- Show the available research reference outcome: True VT/False VT dataset annotation, user-entered unknown-cause event, or unavailable event timing. Never imply a false VT label establishes a normal patient.
+- Added six Node interpretation scenarios and UI contract tests; no classifier, diagnostic algorithm, or clinical approval was added.
+
 ## 0.13.0 — 2026-10-25 (recording replay and custom data)
 
 - Replace static-only waveform review with recorded time navigation, pause/play, replay speed and event jump controls.
