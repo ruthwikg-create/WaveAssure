@@ -7,14 +7,46 @@ const replay = {running:false, frame:0, at:0, playhead:0, lastMs:0, lastFetchMs:
 let selectedCSV=null;
 let selectedWFDB=null;
 let fileSelectionSequence=0;
+let demoMarker=null;
+function hasDemoMarker(){return Boolean(current && demoMarker && demoMarker.id===current.metadata.id && Number.isFinite(demoMarker.time));}
+function explainDisplayedAlarm(){const time=annotatedAlarm();return hasDemoMarker()?window.WaveAssureDemoEvent.explanation(time):window.WaveAssureAlarmEvent.explain(current,time);}
 const clockTime = t => { const v=Math.max(0,Number(t)||0); return String(Math.floor(v/60)).padStart(2,'0')+':'+String(Math.floor(v%60)).padStart(2,'0')+'.'+Math.floor((v%1)*10); };
 function annotatedAlarm(){
- if(!current || current.metadata.parent_id)return null;
- if(current.alarm_time_s !== null && Number.isFinite(current.alarm_time_s))return current.alarm_time_s;
- // Older stored VTaC event records were saved without an explicit timestamp.
- if(current.metadata.origin==='wfdb_research' && ['True','False'].includes(current.reference_label)
-    && String(current.source_reference||'').includes('VTaC') && current.analysis.duration_s>=300)return 300;
- return null;
+ if(!current)return null;
+ if(!current.metadata.parent_id){
+   if(current.alarm_time_s !== null && Number.isFinite(current.alarm_time_s))return current.alarm_time_s;
+   // Legacy VTaC event-only source, not a beep measured from waveform samples.
+   if(current.metadata.origin==='wfdb_research' && ['True','False'].includes(current.reference_label)
+      && String(current.source_reference||'').includes('VTaC') && current.analysis.duration_s>=300)return 300;
+ }
+ return hasDemoMarker()?demoMarker.time:null;
+}
+function toggleDemoMarker(){
+ if(!current)return;
+ pauseReplay();
+ if(hasDemoMarker()){
+   demoMarker=null;
+   $('alarmPlaybackStatus').textContent='Test marker cleared. No recorded buzzer timestamp was added.';
+ }else{
+   if(annotatedAlarm()!==null){
+     toast('This recording already contains an event annotation. Use Jump to alarm and hover its orange line.');
+     return;
+   }
+   const time=window.WaveAssureDemoEvent.sampleTime(current.analysis.duration_s);
+   if(time===null)return;
+   demoMarker={id:current.metadata.id,time};
+   $('alarmPlaybackStatus').textContent='DEMO event at '+clockTime(time)+
+     '. This did NOT happen on a real monitor. Press Play; enable Optional preview tone for a browser-generated beep.';
+   const win=Number($('windowSeconds').value);
+   replay.at=Math.max(0,Math.min(replayLimit(),time-win/2));
+   replay.playhead=0;
+   $('windowStart').value=String(replay.at);
+   text('replayClock','00:00.0');
+   refreshWindow(replay.at);
+ }
+ $('alarmExplanation').classList.add('hidden');
+ $('explainAlarm').setAttribute('aria-expanded','false');
+ renderAlarm();redrawWaveforms();
 }
 function replayLimit(){return Math.max(0,(current?.analysis.duration_s||0)-Number($('windowSeconds').value));}
 function pauseReplay(){
@@ -48,9 +80,9 @@ function replayStep(now){
  replay.playhead=window.WaveAssureReplay.advance(before,delta,Number($('replaySpeed').value)||1,duration);
  const alarm=annotatedAlarm();
  if(window.WaveAssureReplay.crossedEvent(before,replay.playhead,alarm)){
-   text('alarmPlaybackStatus','Playback reached the recorded event marker at '+clockTime(alarm)+
-      ' · '+window.WaveAssureAlarmEvent.explain(current,alarm).status+
-      '. Annotation only; this does not indicate detection or original monitor audio.');
+   text('alarmPlaybackStatus',(hasDemoMarker()?'DEMO marker reached at ':'Recorded event marker reached at ')+clockTime(alarm)+
+      ' · '+explainDisplayedAlarm().status+
+      '. Any optional sound is a browser-generated preview, not original monitor audio.');
    if($('alarmTone').checked)simulatedTone();
  }
  const win=Number($('windowSeconds').value);
@@ -82,11 +114,11 @@ function toggleReplay(){
 function showAlarmExplanation() {
  const detail=$('alarmExplanation');
  const alarm=annotatedAlarm();
- const interpretation=window.WaveAssureAlarmEvent.explain(current,alarm);
+ const interpretation=explainDisplayedAlarm();
  detail.replaceChildren();
  const title=el('h3','',interpretation.status);
  detail.append(title);
- if(alarm!==null)detail.append(el('p','alarm-explanation-time','Recorded marker: '+clockTime(alarm)+' ('+alarm.toFixed(3)+' seconds from recording start).'));
+ if(alarm!==null)detail.append(el('p','alarm-explanation-time',(hasDemoMarker()?'Temporary DEMO marker: ':'Recorded event marker: ')+clockTime(alarm)+' ('+alarm.toFixed(3)+' seconds from recording start).'));
  for(const [label,value] of [
   ['Recorded reference',interpretation.classification],
   ['Meaning',interpretation.reason],
@@ -116,7 +148,7 @@ function onAlarmCanvasClick(event,canvas,w){
 function alarmTooltipText(){
  const time=annotatedAlarm();
  if(time===null)return '';
- const summary=window.WaveAssureAlarmEvent.explain(current,time);
+ const summary=explainDisplayedAlarm();
  return clockTime(time)+' ('+time.toFixed(3)+' seconds) · '+summary.status+
    '. '+summary.reason+' Source: '+summary.source;
 }
@@ -136,10 +168,20 @@ function renderAlarm(){
  const alarm=annotatedAlarm();
  $('jumpAlarm').disabled=(alarm===null);
  $('explainAlarm').disabled=!current;
- if(alarm===null){text('alarmDetail','No alarm timestamp is documented for this recording. WaveAssure cannot infer the original buzzer time.');return;}
- const source=current.alarm_time_source==='dataset_annotation'?'Local VTaC label file (not independently authenticated)':
-  current.alarm_time_source==='user_annotation_unverified'?'User-entered timestamp (unverified)':'Legacy VTaC dataset reference';
- text('alarmDetail','EVENT '+clockTime(alarm)+' ('+alarm.toFixed(3)+' s) · '+window.WaveAssureAlarmEvent.explain(current,alarm).status+' · '+source+'. Hover or focus the orange event marker for evidence. False VT does NOT prove normal physiology. Original monitor audio unavailable.');
+ $('demoMarkerToggle').disabled=!current;
+ $('demoMarkerToggle').textContent=hasDemoMarker()?'Remove test marker':'Show test event marker';
+ if(alarm===null){
+   text('alarmDetail','No recorded alarm/buzzer timestamp exists in this dataset. No event is detected from waveform shape. You can try Show test event marker to practice hovering over an explicitly simulated event.');
+   return;
+ }
+ if(hasDemoMarker()){
+   text('alarmDetail','DEMO ONLY · '+clockTime(alarm)+' ('+alarm.toFixed(3)+' s). Artificial test marker. Hover the orange line for why the browser beep would occur. No actual monitor alarm or patient abnormality was detected.');
+   return;
+ }
+ const source=current.alarm_time_source==='dataset_annotation'?'Local VTaC reference annotation (not independently authenticated)':
+   current.alarm_time_source==='user_annotation_unverified'?'User-entered time only, cause unknown':'Legacy VTaC dataset reference';
+ text('alarmDetail','DOCUMENTED EVENT '+clockTime(alarm)+' ('+alarm.toFixed(3)+' s) · '+explainDisplayedAlarm().status+' · '+source+
+    '. Hover or focus the orange event line to inspect the reference explanation. A false VT annotation does not establish normal physiology.');
 }
 
 const $ = id => document.getElementById(id);
@@ -169,7 +211,7 @@ async function loadRecord(id){
  try{
   const loaded=await request('/api/records/'+encodeURIComponent(id));
   if(sequence!==recordRequestSequence)return false;
-  current=loaded;
+  current=loaded;demoMarker=null;
   const r=current, name=r.metadata.title;
   text('metricRecord',name.length>22?name.substring(0,21)+'…':name);
   text('metricOrigin',r.metadata.parent_id?'Derived fault experiment · not an expert-labelled recording':r.metadata.origin==='synthetic'?'Synthetic educational data':r.metadata.origin==='wfdb_research'?(r.reference_label==='Unlabeled'?'Custom WFDB · no verified expert label':'Local WFDB · dataset label (not AI): '+r.reference_label):'Unverified research recording');
@@ -250,7 +292,7 @@ function draw(canvas,w, settings={}){
   ctx.save();ctx.beginPath();ctx.setLineDash([4,3]);ctx.strokeStyle=palette.getPropertyValue('--orange').trim();ctx.lineWidth=1.5;
   ctx.moveTo(mark,pad.top);ctx.lineTo(mark,height-pad.bottom);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle=palette.getPropertyValue('--orange').trim();ctx.font='bold 10px system-ui';
-  ctx.fillText('EVENT '+clockTime(alarm),Math.min(mark+4,width-110),pad.top+11);ctx.restore();
+  ctx.fillText((hasDemoMarker()?'DEMO ':'EVENT ')+clockTime(alarm),Math.min(mark+4,width-110),pad.top+11);ctx.restore();
  }
   // A moving recorded-time cursor remains visible while its waveform window is static.
   if(replay.running){
@@ -517,6 +559,7 @@ $('datasetFiles').addEventListener('change',event=>{
 $('importCustomCSV').addEventListener('click',importCSV);
 $('replayToggle').addEventListener('click',toggleReplay);
 $('explainAlarm').addEventListener('click',showAlarmExplanation);
+$('demoMarkerToggle').addEventListener('click',toggleDemoMarker);
 $('windowStart').addEventListener('input',()=>{pauseReplay();replay.at=Number($('windowStart').value);replay.playhead=replay.at;text('windowStartValue',clockTime(replay.at));text('replayClock',clockTime(replay.playhead));});
 $('windowStart').addEventListener('change',()=>refreshWindow());
 $('jumpAlarm').addEventListener('click',()=>{const alarm=annotatedAlarm();if(alarm===null)return;
