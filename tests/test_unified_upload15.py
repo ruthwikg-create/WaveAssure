@@ -61,3 +61,11 @@ def test_node_picker_scenarios():
     r=subprocess.run([node,str(ROOT/'tests'/'dataset-upload15.cjs')],capture_output=True,text=True,timeout=15)
     assert r.returncode==0,r.stderr
     assert '11 invalid selections' in r.stdout
+
+
+def test_picker_supports_retry_of_same_file_after_failure():
+    """A file input that holds its old selection may not fire change on retry."""
+    script=(WEB/'app.js').read_text(encoding='utf-8')
+    assert "handleDatasetSelection(picker.files);" in script
+    assert "picker.value='';" in script
+    assert script.index("handleDatasetSelection(picker.files);") < script.index("picker.value='';")
