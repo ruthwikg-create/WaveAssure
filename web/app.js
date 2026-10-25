@@ -3,7 +3,7 @@ let current = null;
 let researchModelAvailable = false;
 let recordRequestSequence = 0;
 let windowRequestSequence = 0;
-const replay = {running:false, frame:0, at:0, previous:0, lastMs:0, lastFetchMs:0, pending:false};
+const replay = {running:false, frame:0, at:0, playhead:0, lastMs:0, lastFetchMs:0, lastDrawMs:0, pending:false};
 let selectedCSV=null;
 let selectedWFDB=null;
 let fileSelectionSequence=0;
@@ -17,7 +17,11 @@ function annotatedAlarm(){
  return null;
 }
 function replayLimit(){return Math.max(0,(current?.analysis.duration_s||0)-Number($('windowSeconds').value));}
-function pauseReplay(){replay.running=false;cancelAnimationFrame(replay.frame);replay.frame=0;replay.pending=false;$('replayToggle').textContent='▶ Play recording';$('replayToggle').setAttribute('aria-pressed','false');}
+function pauseReplay(){
+ replay.running=false;cancelAnimationFrame(replay.frame);replay.frame=0;replay.lastMs=0;
+ $('replayToggle').textContent='▶ Play recording';$('replayToggle').setAttribute('aria-pressed','false');
+ redrawWaveforms();
+}
 function simulatedTone(){
  if(!$('alarmTone').checked)return;
  try { const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass)return;
@@ -29,31 +33,48 @@ function simulatedTone(){
  osc.onended=()=>ac.close();
  }catch(_){ /* Audio preview is optional and not part of the source recording. */ }
 }
+function redrawWaveforms(){
+ if(!current)return;
+ const canvases=document.querySelectorAll('#plots .plot canvas');
+ current.waveforms.forEach((w,i)=>{if(canvases[i])draw(canvases[i],w)});
+}
 function replayStep(now){
  if(!replay.running||!current)return;
  if(document.hidden){pauseReplay();return;}
- const dt=replay.lastMs?Math.min(0.25,(now-replay.lastMs)/1000):0;
+ const delta=replay.lastMs?Math.min(0.25,Math.max(0,(now-replay.lastMs)/1000)):0;
  replay.lastMs=now;
- const speed=Number($('replaySpeed').value)||1;
- const before=replay.at + Number($('windowSeconds').value)/2;
- replay.at=Math.min(replayLimit(),replay.at+Math.max(0,dt)*speed);
- const after=replay.at + Number($('windowSeconds').value)/2;
+ const duration=Number(current.analysis.duration_s)||0;
+ const before=replay.playhead;
+ replay.playhead=window.WaveAssureReplay.advance(before,delta,Number($('replaySpeed').value)||1,duration);
  const alarm=annotatedAlarm();
- if(alarm!==null && before<alarm && after>=alarm)simulatedTone();
- $('windowStart').value=String(replay.at);
- text('windowStartValue',clockTime(replay.at));text('replayClock',clockTime(after));
+ if(window.WaveAssureReplay.crossedEvent(before,replay.playhead,alarm)){
+   text('alarmPlaybackStatus','Playback reached the recorded event marker at '+clockTime(alarm)+
+      ' · '+window.WaveAssureAlarmEvent.explain(current,alarm).status+
+      '. Annotation only; this does not indicate detection or original monitor audio.');
+   if($('alarmTone').checked)simulatedTone();
+ }
+ const win=Number($('windowSeconds').value);
+ const windowStart=window.WaveAssureReplay.startFor(replay.playhead,win,duration);
+ replay.at=windowStart;
+ $('windowStart').value=String(windowStart);
+ text('windowStartValue',clockTime(windowStart));text('replayClock',clockTime(replay.playhead));
+ if(now-replay.lastDrawMs>=32){replay.lastDrawMs=now;redrawWaveforms();}
  if(!replay.pending && now-replay.lastFetchMs>=180){
    replay.lastFetchMs=now;replay.pending=true;
-   refreshWindow(replay.at).finally(()=>{replay.pending=false});
+   refreshWindow(windowStart).finally(()=>{replay.pending=false});
  }
- if(replay.at >= replayLimit()){pauseReplay();return;}
+ if(replay.playhead>=duration){pauseReplay();return;}
  replay.frame=requestAnimationFrame(replayStep);
 }
 function toggleReplay(){
  if(!current)return;
  if(replay.running){pauseReplay();return;}
- if(replay.at >= replayLimit())replay.at=0;
- replay.running=true;replay.lastMs=0;replay.lastFetchMs=0;
+ const duration=Number(current.analysis.duration_s)||0;
+ if(duration<=0)return;
+ if(replay.playhead>=duration){
+   replay.playhead=0;replay.at=0;$('windowStart').value='0';refreshWindow(0);
+ }
+ replay.running=true;replay.lastMs=0;replay.lastFetchMs=0;replay.lastDrawMs=0;
  $('replayToggle').textContent='Ⅱ Pause recording';$('replayToggle').setAttribute('aria-pressed','true');
  replay.frame=requestAnimationFrame(replayStep);
 }
@@ -153,8 +174,9 @@ async function loadRecord(id){
   const alarm=annotatedAlarm();
   const start=(alarm===null?0:Math.max(0,Math.min(max,alarm-20)));
   $('windowStart').max=String(max); $('windowStart').value=String(start);
-  replay.at=start;replay.previous=start;
-  text('windowStartValue',clockTime(start));text('replayClock',clockTime(start+Number($('windowSeconds').value)/2));
+  replay.at=start;replay.playhead=start;
+  text('windowStartValue',clockTime(start));text('replayClock',clockTime(replay.playhead));
+  text('alarmPlaybackStatus','Playback has not reached any annotation. Optional preview tone is off and never represents original monitor audio.');
   renderAlarm();
   showQuality(r.analysis.quality_checks, r.metadata.origin);
   loadEvidence(id);
@@ -415,7 +437,7 @@ async function refreshWindow(startOverride=null){
  const start=Math.max(0,Math.min(maximum,wanted));
  const id=current.metadata.id,seq=++windowRequestSequence;
  text('windowStartValue',clockTime(start));
- if(!replay.running)text('replayClock',clockTime(start+win/2));
+ if(!replay.running)text('replayClock',clockTime(replay.playhead));
  try{
   const r=await request('/api/records/'+encodeURIComponent(id)+'/preview?start_s='+start.toFixed(3)+'&window_s='+win);
   if(!current||current.metadata.id!==id||seq!==windowRequestSequence)return;
@@ -439,17 +461,17 @@ $('datasetFiles').addEventListener('change',event=>{
 $('importCustomCSV').addEventListener('click',importCSV);
 $('replayToggle').addEventListener('click',toggleReplay);
 $('explainAlarm').addEventListener('click',showAlarmExplanation);
-$('windowStart').addEventListener('input',()=>{pauseReplay();replay.at=Number($('windowStart').value);text('windowStartValue',clockTime(replay.at));});
+$('windowStart').addEventListener('input',()=>{pauseReplay();replay.at=Number($('windowStart').value);replay.playhead=replay.at;text('windowStartValue',clockTime(replay.at));text('replayClock',clockTime(replay.playhead));});
 $('windowStart').addEventListener('change',()=>refreshWindow());
 $('jumpAlarm').addEventListener('click',()=>{const alarm=annotatedAlarm();if(alarm===null)return;
- pauseReplay();const win=Number($('windowSeconds').value);replay.at=Math.max(0,Math.min(replayLimit(),alarm-win*.75));
+ pauseReplay();const win=Number($('windowSeconds').value);replay.at=Math.max(0,Math.min(replayLimit(),alarm-win*.75));replay.playhead=replay.at;
  $('windowStart').value=String(replay.at);refreshWindow();showAlarmExplanation();});
 $('windowSeconds').addEventListener('change',()=>{
  pauseReplay();const max=replayLimit();$('windowStart').max=String(max);
- replay.at=Math.min(Number($('windowStart').value),max);
+ replay.at=Math.min(Number($('windowStart').value),max);replay.playhead=replay.at;
  $('windowStart').value=String(replay.at);refreshWindow();
 });$('refreshAudit').addEventListener('click',loadAudit);$('downloadReport').addEventListener('click',downloadReport);$('printReport').addEventListener('click',()=>{if(current)window.open('/api/records/'+encodeURIComponent(current.metadata.id)+'/report.html','_blank','noopener')});
-$('faultSeverity').addEventListener('input',()=>text('severityValue',$('faultSeverity').value));window.addEventListener('resize',()=>{if(current)current.waveforms.forEach((w,i)=>{const canvases=document.querySelectorAll('.plot canvas');if(canvases[i])draw(canvases[i],w)})});
+$('faultSeverity').addEventListener('input',()=>text('severityValue',$('faultSeverity').value));window.addEventListener('resize',redrawWaveforms);
 reloadRecords();
 
 request('/api/wfdb/config').then(r=>text('wfdbRootInfo',r.configured?'Dataset folder: '+r.root:'Configure WAVEASSURE_WFDB_ROOT and restart the server')).catch(()=>{});
