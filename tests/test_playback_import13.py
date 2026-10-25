@@ -92,10 +92,10 @@ def test_custom_dataset_never_forges_model_label(client):
 
 def test_static_ui_playback_and_dataset_mapping_exists():
     base=Path(__file__).resolve().parents[1]/'web'
-    ui=(base/'index.html').read_text(encoding='utf-8')
-    code=(base/'app.js').read_text(encoding='utf-8')
+    ui=(base/'index.html').read_text()
+    code=(base/'app.js').read_text()
     for marker in ('replayToggle','windowStart','alarmDetail','jumpAlarm','replaySpeed','csvMapper',
-                   'csvTimeColumn','csvChannels','wfdbHeader','wfdbData','importWFDBFiles'):
+                   'csvTimeColumn','csvChannels','datasetFiles','importWFDBFiles'):
         assert f'id="{marker}"' in ui
     assert 'requestAnimationFrame(replayStep)' in code
     assert 'alarm_time_s' in code and 'user_annotation_unverified' in code

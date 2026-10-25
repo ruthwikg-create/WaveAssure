@@ -43,3 +43,19 @@
 .alarm-explanation-row strong {font-size:12px;color:var(--text)}
 .alarm-explanation-row p {margin:0;font-size:12px;line-height:1.6;color:var(--muted)}
 .alarm-explanation:focus {outline:2px solid var(--accent);outline-offset:2px}
+
+/* One visible upload input for CSV or a matched WFDB pair. */
+.unified-upload {display:grid;gap:10px;padding:15px 19px 18px;border-top:1px solid var(--line)}
+.unified-upload .upload-title {font-size:13px;font-weight:650;color:var(--text);letter-spacing:normal}
+.unified-upload #datasetFiles {display:block;width:100%;min-width:0;padding:12px;border:1px solid var(--line);border-radius:7px;background:var(--input-bg,var(--panel2));color:var(--text);font-size:13px;cursor:pointer}
+.unified-upload .upload-help,.unified-upload .upload-status,.wfdb-pair p {font-size:12px;line-height:1.6;color:var(--muted);margin:0}
+.unified-upload .upload-status {overflow-wrap:anywhere;color:var(--text);background:var(--panel2);border-radius:6px;padding:8px 10px}
+.unified-upload .dataset-mapper,.unified-upload .wfdb-pair {padding:14px 0 0;margin:0;border-top:1px solid var(--line)}
+.unified-upload .wfdb-pair label {display:block;letter-spacing:normal}
+.unified-upload #datasetFiles:focus-visible {outline:2px solid var(--accent);outline-offset:2px}
+.local-wfdb-advanced {border-top:1px solid var(--line);padding:12px 18px}
+.local-wfdb-advanced summary {cursor:pointer;color:var(--muted);font-size:12px;font-weight:600}
+.local-wfdb-advanced .wfdb-import {padding:12px 0 0;border:0;display:grid;gap:8px}
+.local-wfdb-advanced .wfdb-import input {width:100%}
+.local-wfdb-advanced .wfdb-import .btn-secondary {justify-self:start}
+@media(max-width:600px){.unified-upload{padding:13px}.local-wfdb-advanced .btn-secondary{width:100%}}

@@ -32,8 +32,8 @@ def test_accessible_alarm_interaction_and_motion_semantics():
 
 def test_wfdb_header_data_explained_and_old_patient_data_not_uploaded():
     html=(WEB/'index.html').read_text(encoding='utf-8')
-    assert 'Header file (.hea)' in html
-    assert 'Waveform file (.dat)' in html
+    assert 'matching <strong>.hea and .dat together</strong>' in html
+    assert 'id="datasetFiles"' in html
     assert 'importWFDBFiles' in html
 
 
