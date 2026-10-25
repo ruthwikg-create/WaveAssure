@@ -19,15 +19,6 @@ function explainDisplayedAlarm(){
 function formatResearchNumber(value){
  return value===null||value===undefined||!Number.isFinite(value)?'N/A':Number(value).toFixed(3);
 }
-function channelObservationText(channel){
- const unit=channel.unit||'unverified units';
- const values=channel.valid_samples ?
-   'minimum '+formatResearchNumber(channel.minimum)+', maximum '+formatResearchNumber(channel.maximum)+
-   ', mean '+formatResearchNumber(channel.mean)+' '+unit : 'No finite samples';
- return channel.kind+' '+channel.channel+' ±2s: '+values+'; '+channel.missing_samples+' missing samples. '+
-   (channel.kind==='ECG'?'ECG subtype not independently classified.':
-    'Clinical low/high and normality not assessed.');
-}
 function renderChannelEvidence(){
  const container=$('alarmChannelEvidence');
  if(!container || !current)return;
@@ -180,24 +171,39 @@ function toggleReplay(){
  $('replayToggle').textContent='Ⅱ Pause recording';$('replayToggle').setAttribute('aria-pressed','true');
  replay.frame=requestAnimationFrame(replayStep);
 }
+function alarmBrief(){
+ if(hasDemoMarker())return {
+   title:'Test event · no real alarm',
+   detail:'Marker and optional beep are simulated.'
+ };
+ return window.WaveAssureAlarmEvent.brief(current,annotatedAlarm());
+}
 function showAlarmExplanation() {
  const detail=$('alarmExplanation');
  const alarm=annotatedAlarm();
+ const brief=alarmBrief();
  const interpretation=explainDisplayedAlarm();
  detail.replaceChildren();
- const title=el('h3','',interpretation.status);
- detail.append(title);
- if(alarm!==null)detail.append(el('p','alarm-explanation-time',(hasDemoMarker()?'Temporary DEMO marker: ':'Recorded event marker: ')+clockTime(alarm)+' ('+alarm.toFixed(3)+' seconds from recording start).'));
+ detail.append(el('h3','',(alarm===null?'':clockTime(alarm)+' · ')+brief.title));
+ detail.append(el('p','alarm-brief-reason',brief.detail));
+ // Detailed source evidence is still available, but is not forced on everyone.
+ const advanced=el('details','alarm-advanced');
+ advanced.append(el('summary','','Details and signal measurements'));
  for(const [label,value] of [
-  ['Recorded reference',interpretation.classification],
-  ['Meaning',interpretation.reason],
-  ['Evidence source',interpretation.source],
-  ['Safety limit',interpretation.disclaimer]
+   ['Dataset / event label',interpretation.classification],
+   ['Explanation',interpretation.reason],
+   ['Source',interpretation.source],
+   ['Limitations',interpretation.disclaimer]
  ]) {
-  const row=el('div','alarm-explanation-row');row.append(el('strong','',label),el('p','',value));detail.append(row);
+   const row=el('div','alarm-explanation-row');
+   row.append(el('strong','',label),el('p','',value));
+   advanced.append(row);
  }
- const measured=el('section','event-evidence');measured.id='alarmChannelEvidence';
- detail.append(measured);renderChannelEvidence();
+ const measured=el('section','event-evidence');
+ measured.id='alarmChannelEvidence';
+ advanced.append(measured);
+ detail.append(advanced);
+ renderChannelEvidence();
  detail.classList.remove('hidden');
  $('explainAlarm').setAttribute('aria-expanded','true');
  detail.focus({preventScroll:true});
@@ -220,15 +226,8 @@ let selectedHoverChannel='';
 function alarmTooltipText(){
  const time=annotatedAlarm();
  if(time===null)return '';
- const summary=explainDisplayedAlarm();
- const channel=eventContext?.channels.find(ch=>ch.channel===selectedHoverChannel);
- const contextLine=eventContext ?
-   (eventContext.reference_rhythm_category ? 'Source event category: VT. ' : '')+
-   (channel ? channelObservationText(channel) :
-     'Select the event line on a signal to see its channel measurements.') :
-   'Event-window raw samples loading.';
- return clockTime(time)+' ('+time.toFixed(3)+' seconds) · '+summary.status+
-   '. '+summary.reason+' '+contextLine+' Source: '+summary.source;
+ const brief=alarmBrief();
+ return clockTime(time)+' · '+brief.title+'\n'+brief.detail+'\nClick or Enter for details';
 }
 function hoverAlarm(event,canvas,w,tooltip){
  const x=alarmMarkerPosition(canvas,w);
@@ -239,8 +238,8 @@ function hoverAlarm(event,canvas,w,tooltip){
  tooltip.classList.toggle('hidden',!active);
  if(active){
    tooltip.textContent=alarmTooltipText();
-   const edge=Math.max(0,canvas.getBoundingClientRect().width-300);
-   tooltip.style.left=Math.max(4,Math.min(edge,x-130))+'px';
+   const edge=Math.max(0,canvas.getBoundingClientRect().width-224);
+   tooltip.style.left=Math.max(4,Math.min(edge,x-100))+'px';
  }
 }
 function renderAlarm(){
@@ -250,17 +249,15 @@ function renderAlarm(){
  $('demoMarkerToggle').disabled=!current;
  $('demoMarkerToggle').textContent=hasDemoMarker()?'Remove test marker':'Show test event marker';
  if(alarm===null){
-   text('alarmDetail','No recorded alarm/buzzer timestamp exists in this dataset. No event is detected from waveform shape. You can try Show test event marker to practice hovering over an explicitly simulated event.');
+   text('alarmDetail','No alarm time in this file. Use Show test event marker to try the feature.');
    return;
  }
  if(hasDemoMarker()){
-   text('alarmDetail','DEMO ONLY · '+clockTime(alarm)+' ('+alarm.toFixed(3)+' s). Artificial test marker. Hover the orange line for why the browser beep would occur. No actual monitor alarm or patient abnormality was detected.');
+   text('alarmDetail',clockTime(alarm)+' · Test marker only (not a real alarm). Hover or click for details.');
    return;
  }
- const source=current.alarm_time_source==='dataset_annotation'?'Local VTaC reference annotation (not independently authenticated)':
-   current.alarm_time_source==='user_annotation_unverified'?'User-entered time only, cause unknown':'Legacy VTaC dataset reference';
- text('alarmDetail','DOCUMENTED EVENT '+clockTime(alarm)+' ('+alarm.toFixed(3)+' s) · '+explainDisplayedAlarm().status+' · '+source+
-    '. Hover or focus the orange event line to inspect the reference explanation. A false VT annotation does not establish normal physiology.');
+ const brief=alarmBrief();
+ text('alarmDetail',clockTime(alarm)+' · '+brief.title+'. Hover for summary; click the marker for details.');
 }
 
 const $ = id => document.getElementById(id);
