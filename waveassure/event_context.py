@@ -35,7 +35,8 @@ def describe_at(record: RecordCreate, metadata: dict, at_s: float, radius_s: flo
     aligns_with_event = source_time is not None and abs(source_time-at_s) <= 1/record.sample_rate_hz
     is_annotated_vt = (aligns_with_event and record.origin == 'wfdb_research'
                        and record.reference_label in ('True', 'False')
-                       and (record.alarm_time_source == 'dataset_annotation' or legacy_vtac))
+                       and (record.alarm_time_source == 'dataset_annotation' or
+                            (record.alarm_time_s is None and legacy_vtac)))
     if is_annotated_vt:
         reference = 'genuine_vt_alarm' if record.reference_label == 'True' else 'false_vt_alarm'
         source = 'Original WFDB VTaC research annotation; source authenticity not independently established'
