@@ -57,6 +57,7 @@
           <div class="ecg-matrix-chart hidden" id="ecgMatrixChart">
             <div class="ecg-matrix-heading"><strong id="ecgMatrixPlotTitle">ECG segment</strong><span>Sample index · amplitudes in original unspecified units</span></div>
             <canvas id="ecgMatrixCanvas" height="180" role="img" aria-label="Selected ECG segment amplitudes plotted against sample index"></canvas>
+            <div class="ecg-sweep-controls"><button id="ecgMatrixSweep" type="button" class="btn-secondary" disabled>▶ Sweep segment samples</button><output id="ecgMatrixSweepStatus" aria-live="off">Sample sweep not started (no ECG timebase inferred)</output></div>
             <p id="ecgMatrixStats"></p>
           </div>
         </section>
