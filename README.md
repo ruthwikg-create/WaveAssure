@@ -1,5 +1,9 @@
 # WaveAssure
 
+**v0.19 — Understand the event marker:** A waveform without alarm-event metadata cannot show when a real monitor buzzed. To practice hovering over an orange line, use **Show test event marker** in Waveform review. The DEMO marker and optional browser-generated beep are not authentic patient or monitor evidence and are never persisted. Hover/focus the marker to read the reason. For source-labelled VTaC records, reference true/false VT alarm annotations are shown separately. See [how alarm markers work](docs/EVENT_HOVER_DEMO_V019.md).
+
+
+
 **v0.18 — Replay, event-hover and dataset onboarding:** Recorded-time replay has a visible moving green playhead, including recordings shorter than the current viewing window. Hover/focus an orange EVENT marker to inspect its documented time, source and genuine/false VT reference when one exists. Original bedside buzzer times are **never fabricated**: a user annotation remains unverified, the optional playback tone is browser-generated, and a false VT alarm is not proof of normal physiology. A sample-index sweep is available for wide ECG segment CSVs. Run `py -3 scripts/generate-research-waveform-csv.py` for a known-compatible **synthetic** CSV. See [dataset & replay guide](docs/REPLAY_DATA_ALARM_GUIDE_V018.md).
 
 

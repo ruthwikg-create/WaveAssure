@@ -1,3 +1,10 @@
+## v0.19.0 — Clearly distinguished demo event markers (2026-10-25)
+
+- When a loaded recording lacks documented alarm data, offer a temporary **Show test event marker** control directly beside replay.
+- Display an orange DEMO marker that can be hovered, focused, clicked or reached during recorded-time playback; optionally trigger a short browser-generated preview beep.
+- Explain that the user-created marker is not an actual monitor buzzer event, medical condition, threshold crossing or expert reference label. Never save it to research records.
+- Preserve authoritative source-linked VTaC true/false VT event interpretation and user-entered unverified alarm annotations separately. Tests cover display-only provenance safety.
+
 ## v0.18.0 — Recorded replay, event evidence and dataset guide (2026-10-25)
 
 - Replace ineffective short-recording replay window motion with a visible moving recorded-time cursor and source-independent playback clock; avoid re-fetching unchanged windows.
