@@ -273,11 +273,17 @@ function showCSVMapping(file, sequence){
  if(!file)return;
  selectedCSV=file;
  if(file.size>8_000_000){text('datasetSelectionStatus','CSV exceeds 8 MB; choose a smaller recording.');selectedCSV=null;return}
- file.slice(0,8192).text().then(head=>{
+ file.slice(0,32768).text().then(head=>{
    if(sequence!==fileSelectionSequence)return;
+   const matrix=window.WaveAssureECGMatrix.inspect(head);
+   if(matrix.kind==='matrix'){
+     window.WaveAssureECGPreview.show(file,matrix);
+     text('datasetSelectionStatus','ECG segment matrix detected: '+file.name+' · '+matrix.fields+' columns. Preview a single row; this is not continuous-monitor waveform playback.');
+     return;
+   }
    let first=head.replace(/^\uFEFF/,'').split(/\r?\n/)[0];
    const columns=safeCSVHeader(first);
-   if(!columns.length||columns.length>60||new Set(columns).size!==columns.length)throw Error('CSV must have unique headers (up to 60)');
+   if(!columns.length||columns.length>60||new Set(columns).size!==columns.length)throw Error('Unsupported CSV layout: expected 1–60 unique named columns for time-series mapping, or a wide (100–512 column) numeric ECG segment matrix. For ECG matrices, use de-identified rows of ordered numeric samples; do not import alert/label tables.');
    $('csvMapper').classList.remove('hidden');text('csvName',file.name);
    const time=$('csvTimeColumn');time.replaceChildren();
    const emptyTime=el('option','','Choose elapsed time column');emptyTime.value='';time.append(emptyTime);
@@ -353,6 +359,7 @@ async function importCSV(){
  finally{button.disabled=false}
 }
 function resetUnifiedUpload(){
+ window.WaveAssureECGPreview.reset();
  ++fileSelectionSequence;
  $('datasetFiles').value='';
  selectedCSV=null;selectedWFDB=null;
@@ -361,6 +368,7 @@ function resetUnifiedUpload(){
  text('datasetSelectionStatus','No recording selected.');
 }
 function handleDatasetSelection(files){
+ window.WaveAssureECGPreview.reset();
  const sequence=++fileSelectionSequence;
  selectedCSV=null;selectedWFDB=null;
  $('csvMapper').classList.add('hidden');$('wfdbPairOptions').classList.add('hidden');
