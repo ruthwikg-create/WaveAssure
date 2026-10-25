@@ -24,5 +24,5 @@ for(const [h,expected] of [['time_s','time'],['Time (ms)','time'],['ECG_mV','ECG
  assert.equal(guess(h),expected,h);
 }
 assert.ok(src.includes("time.value=timeName||'';"),'Do not use first CSV column as time');
-assert.ok(src.includes("Boolean(identifiers.length)||!time.value||!checked"),'Invalid mapping must disable import');
+assert.ok(src.includes('selected.length>8||invalid.length>0'),'Unsafe or excessive channels must disable import');
 console.log('CSV header mapping: identifier, alert, scalar, real waveform and time cases verified');
