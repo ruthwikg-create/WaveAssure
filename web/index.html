@@ -33,6 +33,26 @@
           <label class="optional-time" for="csvAlarmTime">Alarm timestamp in seconds (optional, user-supplied)</label><input id="csvAlarmTime" type="number" step="0.001" min="0" max="600" placeholder="Unknown — leave blank">
           <button id="importCustomCSV" class="btn-secondary" type="button">Import selected CSV</button><p class="mapping-error" id="csvMapperStatus" aria-live="polite"></p>
         </div>
+        <section id="ecgMatrixPanel" class="dataset-mapper ecg-matrix-panel hidden" aria-labelledby="ecgMatrixTitle">
+          <h3 id="ecgMatrixTitle">ECG segment preview · wide CSV</h3>
+          <p id="ecgMatrixDetails" role="status">Numeric row-wise ECG segment candidate.</p>
+          <p>Each CSV row is treated as one independent ordered sample segment, not a continuous recording. No sample rate, ECG millivolts, diagnostic class, or alarm time is inferred. Nothing is sent to the WaveAssure API in this preview.</p>
+          <label class="ecg-matrix-ack"><input type="checkbox" id="ecgMatrixConfirm"> I confirm rows represent ordered, de-identified ECG sample segments, not a patient table.</label>
+          <label>First row layout
+            <select id="ecgMatrixHeader"><option value="no">First row contains ECG samples (no header)</option><option value="yes">First row contains column headers</option></select>
+          </label>
+          <label class="ecg-matrix-ack"><input type="checkbox" id="ecgMatrixLabel"> Exclude final class/label column from ECG samples (verify against dataset documentation)</label>
+          <label>Segment row number (starting at 1)
+            <input id="ecgMatrixRow" type="number" min="1" step="1" value="1">
+          </label>
+          <button type="button" id="ecgMatrixPreview" class="btn-secondary" disabled>Preview selected ECG segment</button>
+          <p id="ecgMatrixStatus" role="status" aria-live="polite"></p>
+          <div class="ecg-matrix-chart hidden" id="ecgMatrixChart">
+            <div class="ecg-matrix-heading"><strong id="ecgMatrixPlotTitle">ECG segment</strong><span>Sample index · amplitudes in original unspecified units</span></div>
+            <canvas id="ecgMatrixCanvas" height="180" role="img" aria-label="Selected ECG segment amplitudes plotted against sample index"></canvas>
+            <p id="ecgMatrixStats"></p>
+          </div>
+        </section>
         <div class="wfdb-pair hidden" id="wfdbPairOptions">
           <strong id="wfdbPairSummary">Matched WFDB recording</strong>
           <p>WaveAssure currently supports a restricted WFDB format-16 pair, not every WFDB variant. Imported waveform data has no verified expert label.</p>
@@ -76,5 +96,5 @@
 </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/static/alarm-event.js"></script><script src="/static/dataset-upload.js"></script><script src="/static/app.js"></script>
+<script src="/static/alarm-event.js"></script><script src="/static/dataset-upload.js"></script><script src="/static/ecg-matrix.js"></script><script src="/static/app.js"></script>
 </body></html>
