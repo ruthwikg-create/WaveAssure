@@ -1,3 +1,11 @@
+## v0.21.0 — Professional A4 printable research evidence (2026-10-25)
+
+- Replace the dense 11-column research table / repeated limitations with a monochrome A4 evidence report, five sections, readable channel measurements and compact source traceability.
+- Show a de-identified patient/research details form **above** a live report preview, with optional subject label, study ID, age, sex, unit, date, reviewer and notes.
+- Keep personally identifying details OUT of APIs/SQLite, exports and cookies: browser-only, memory-only textContent updates, never persisted. Print or save PDF using the browser, with correct page breaks.
+- Distinguish original VTaC annotated true/false VT alarms, user-entered unknown-cause times and recordings without annotations. No fabricated ECG subtype, high/low vital status, clinical diagnosis or patient-care claim.
+- Preserve the raw evidence JSON export and traceability. Synthetic tests verify A4 layout, escaping, data privacy and browser actions; production clinical validation remains absent.
+
 ## v0.20.0 — Per-channel event context without unsupported medical classifications (2026-10-25)
 
 - Clarify genuine/false VTaC ventricular tachycardia **source alarm** reference and the lack of independent ECG morphology classification.
