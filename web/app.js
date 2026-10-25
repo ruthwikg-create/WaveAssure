@@ -384,7 +384,13 @@ for(const item of document.querySelectorAll('.nav'))item.addEventListener('click
 for(const item of document.querySelectorAll('[data-demo]'))item.addEventListener('click',()=>createDemo(item.dataset.demo));
 $('injectBtn').addEventListener('click',createFault);$('importWFDB').addEventListener('click',importWFDB);
 $('importWFDBFiles').addEventListener('click',importWFDBFiles);
-$('datasetFiles').addEventListener('change',event=>handleDatasetSelection(event.target.files));
+$('datasetFiles').addEventListener('change',event=>{
+ const picker=event.currentTarget;
+ handleDatasetSelection(picker.files);
+ // Preserve captured File references, but allow choosing the same file(s) again
+ // after a rejected selection or import failure (browsers otherwise omit change).
+ picker.value='';
+});
 $('importCustomCSV').addEventListener('click',importCSV);
 $('replayToggle').addEventListener('click',toggleReplay);
 $('explainAlarm').addEventListener('click',showAlarmExplanation);
