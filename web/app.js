@@ -222,7 +222,6 @@ function onAlarmCanvasClick(event,canvas,w){
  const local=event.clientX-canvas.getBoundingClientRect().left;
  if(Math.abs(local-x)<=24)showAlarmExplanation();
 }
-let selectedHoverChannel='';
 function alarmTooltipText(){
  const time=annotatedAlarm();
  if(time===null)return '';
@@ -233,7 +232,6 @@ function hoverAlarm(event,canvas,w,tooltip){
  const x=alarmMarkerPosition(canvas,w);
  const left=event.clientX-canvas.getBoundingClientRect().left;
  const active=x!==null&&Math.abs(left-x)<=24;
- if(active)selectedHoverChannel=w.name||w.kind;
  canvas.style.cursor=active?'pointer':'default';
  tooltip.classList.toggle('hidden',!active);
  if(active){
@@ -321,7 +319,7 @@ async function loadRecord(id){
     canvas.addEventListener('mousemove',event=>hoverAlarm(event,canvas,active(),tooltip));
     canvas.addEventListener('mouseleave',()=>tooltip.classList.add('hidden'));
     canvas.addEventListener('focus',()=>{if(annotatedAlarm()!==null){
-       selectedHoverChannel=w.name||w.kind;tooltip.textContent=alarmTooltipText();tooltip.style.left='8px';tooltip.classList.remove('hidden');
+       tooltip.textContent=alarmTooltipText();tooltip.style.left='8px';tooltip.classList.remove('hidden');
     }});
     canvas.addEventListener('blur',()=>tooltip.classList.add('hidden'));
     canvas.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&annotatedAlarm()!==null){
