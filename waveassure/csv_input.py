@@ -33,7 +33,7 @@ def parse_csv(data: CSVImport) -> RecordCreate:
         raise ValueError('CSV needs unique, nonempty column headers')
     lowered = [h.lower().replace(' ', '_') for h in headers]
     if any(any(token in h for token in SENSITIVE_WORDS) for h in lowered):
-        raise ValueError('Identifying column headers are not allowed (such as Patient Number). Remove identifiers from the source CSV before import. Patient-level alert tables are not waveform recordings.')
+        raise ValueError('Unsupported columns: Identifying column headers are not allowed (such as Patient Number). Remove identifiers from the source CSV before import. Patient-level alert tables are not waveform recordings.')
     explicit = data.channel_mapping is not None
     if explicit:
         if len(data.channel_mapping) < 1 or len(data.channel_mapping) > 8:
