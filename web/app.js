@@ -248,13 +248,26 @@ function safeCSVHeader(line){
  }
  if(quoted)throw Error('Unclosed quoted CSV header');result.push(value);return result;
 }
-function csvColumnGuess(header){
- const h=header.trim().toLowerCase();
- if(h==='time_s'||h==='time_ms'||h==='time'||h.startsWith('timestamp'))return 'time';
+const CSV_IDENTIFIER_TOKENS=['patient','subject','name','first_name','last_name','dob','birth',
+ 'email','phone','address','mrn','medical_record','person_id'];
+const CSV_EVENT_TOKENS=new Set(['alert','alarm','flag','status','accuracy','diagnosis',
+ 'diagnostic','risk','classification','label','warning']);
+const CSV_SCALAR_FIELDS=new Set(['heart_rate','heartrate','pulse_rate','spo2',
+ 'oxygen_saturation','respiration_rate','respiratory_rate','body_temperature','temperature']);
+function csvFieldType(header){
+ const h=header.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+ if(CSV_IDENTIFIER_TOKENS.some(token=>h.includes(token)))return 'identifier';
+ if(CSV_SCALAR_FIELDS.has(h)||h.split('_').some(token=>CSV_EVENT_TOKENS.has(token)))return 'summary';
+ if(['time_s','time_ms','time','elapsed_s','elapsed_ms','elapsed_time','timestamp_s',
+     'timestamp_ms','timestamp','sample_time','seconds','milliseconds'].includes(h))return 'time';
  if(h.includes('pleth')||h.includes('ppg'))return 'PPG';
- if(h.includes('abp')||h.includes('pressure'))return 'ABP';
+ if(h==='abp'||h.startsWith('abp_')||h==='arterial_pressure')return 'ABP';
  if(/^(i|ii|iii|avr|avl|avf|v[1-6]?|ecg.*|lead.*)$/.test(h))return 'ECG';
  return '';
+}
+function csvColumnGuess(header){
+ const type=csvFieldType(header);
+ return type==='identifier'||type==='summary'?'':type;
 }
 function showCSVMapping(file, sequence){
  if(!file)return;
@@ -267,6 +280,7 @@ function showCSVMapping(file, sequence){
    if(!columns.length||columns.length>60||new Set(columns).size!==columns.length)throw Error('CSV must have unique headers (up to 60)');
    $('csvMapper').classList.remove('hidden');text('csvName',file.name);
    const time=$('csvTimeColumn');time.replaceChildren();
+   const emptyTime=el('option','','Choose elapsed time column');emptyTime.value='';time.append(emptyTime);
    const body=$('csvChannels');body.replaceChildren();
    columns.forEach((name,i)=>{
      const op=el('option','',name);op.value=name;time.append(op);
@@ -284,9 +298,31 @@ function showCSVMapping(file, sequence){
      select.value=guess&&guess!=='time'?guess:'ECG';select.addEventListener('change',syncUnits);syncUnits();
      row.append(use,span,select,units);body.append(row);
    });
-   const timeName=columns.find(c=>csvColumnGuess(c)==='time')||columns[0];time.value=timeName;
-   $('csvTimeUnit').value=timeName.toLowerCase().includes('ms')?'ms':'s';
-   text('csvMapperStatus','Only checked columns will be imported. Unrecognized/identifying columns cannot be accepted.');
+   const timeName=columns.find(c=>csvColumnGuess(c)==='time');
+   time.value=timeName||'';
+   $('csvTimeUnit').value=timeName&&timeName.toLowerCase().includes('ms')?'ms':'s';
+   const identifiers=columns.filter(c=>csvFieldType(c)==='identifier');
+   const summaries=columns.filter(c=>csvFieldType(c)==='summary');
+   const warning=identifiers.length
+     ? 'Import blocked: identifying header(s) found: '+identifiers.join(', ')+
+       '. Remove identifying columns locally, then choose the cleaned CSV. Patient alert tables cannot be displayed as ECG waveforms.'
+     : summaries.length
+       ? 'Alert, status and scalar vital-sign fields (including '+summaries.slice(0,3).join(', ')+
+         ') are not ECG/PPG/ABP waveform samples. They are excluded. Choose actual time-series waveform columns or use a suitable waveform dataset.'
+       : 'Choose a measured waveform and confirm its actual units; no physiological values or alarm labels are inferred.';
+   const updateReady=()=>{
+     const selected=Array.from(body.querySelectorAll('.channel-use')).filter(box=>box.checked);
+     const invalid=selected.filter(box=>['identifier','summary','time'].includes(csvFieldType(box.dataset.column))||
+       box.dataset.column===time.value);
+     $('importCustomCSV').disabled=Boolean(identifiers.length)||!time.value||!selected.length||
+       selected.length>8||invalid.length>0;
+     text('csvFormatAdvice',warning+
+       (!time.value?' No elapsed-time column was recognized; select one explicitly if present.':'')+
+       (invalid.length?' Uncheck non-waveform/elapsed-time columns: '+invalid.map(box=>box.dataset.column).join(', ')+'.':'')+
+       (selected.length>8?' Select no more than 8 waveform columns.':''));
+   };
+   time.addEventListener('change',updateReady);body.addEventListener('change',updateReady);
+   updateReady();
  }).catch(e=>{if(sequence===fileSelectionSequence){$('csvMapper').classList.add('hidden');selectedCSV=null;text('datasetSelectionStatus','Cannot read CSV header: '+e.message);}});
 }
 async function importCSV(){
@@ -304,6 +340,7 @@ async function importCSV(){
    mappings.push({column:name,name:clean||kind,kind,unit});
   }
   if(mappings.length<1||mappings.length>8)throw Error('Select 1 to 8 signal columns');
+  if(!$('csvTimeColumn').value)throw Error('Select an elapsed-time column. Patient number and row number are not time.');
   const rawAlarm=$('csvAlarmTime').value.trim();
   const csv_text=await selectedCSV.text();
   const payload={title:selectedCSV.name.slice(0,64),csv_text,
