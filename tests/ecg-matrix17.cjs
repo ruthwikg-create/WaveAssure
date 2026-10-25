@@ -10,7 +10,7 @@ let kind=m.inspect(csv);assert.equal(kind.kind,'matrix');
 assert.equal(kind.fields,141);assert.equal(kind.hasHeader,false);assert.equal(kind.suggestLabel,true);
 assert.equal(m.rowLines(csv,false).length,2);
 assert.equal(m.parseRow(a,true).length,140);
-assert.throws(()=>m.parseRow(a+',3',false),/nonnumeric|minimum/i, 'fails unexpected label only when actually nonnumeric');
+assert.throws(()=>m.parseRow(beat('normal'),false),/nonnumeric/i, 'explicit class text cannot be a waveform sample');
 const columns=Array.from({length:140},(_,i)=>String(i)).concat(['label']).join(',');
 kind=m.inspect(columns+'\n'+csv);
 assert.equal(kind.kind,'matrix');assert.equal(kind.hasHeader,true);
