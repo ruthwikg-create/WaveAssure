@@ -15,7 +15,8 @@ async function request(url, options={}) {
 function setSection(section){
   for(const name of ['workbench','pilot','records','assurance'])$('section-'+name).classList.toggle('hidden',name!==section);
   document.querySelectorAll('.nav').forEach(el=>el.classList.toggle('active',el.dataset.go===section));
-  text('crumb',section.toUpperCase());
+  text('crumb',{workbench:'Workbench',pilot:'Review practice',records:'Records',assurance:'Assurance log'}[section] || section);
+  document.querySelectorAll('.nav').forEach(button => button.setAttribute('aria-current', button.dataset.go===section ? 'page' : 'false'));
   if(section==='records')reloadRecords();
   if(section==='pilot')renderPilot();
   if(section==='assurance')loadAudit();

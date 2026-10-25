@@ -1,24 +1,24 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><script src="/static/theme.js"></script><title>WaveAssure · Signal Assurance Workbench</title><link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/experience.css"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><script src="/static/theme.js"></script><title>WaveAssure · Signal Assurance Workbench</title><link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/experience.css"><link rel="stylesheet" href="/static/craft.css"></head>
 <body>
 <div class="shell">
 <aside class="sidebar">
   <div class="brand"><span class="brandmark">W<span class="branddot">.</span></span><div><strong>WaveAssure</strong><small>SIGNAL ASSURANCE</small></div></div>
-  <div class="project-label">RESEARCH WORKSPACE</div>
-  <button class="nav active" data-go="workbench"><span class="nav-icon">◉</span> Workbench</button>
-  <button class="nav" data-go="pilot"><span class="nav-icon">▣</span> Unblinded review practice</button>
-  <button class="nav" data-go="records"><span class="nav-icon">▤</span> Records <span id="recordCount" class="count">0</span></button>
-  <button class="nav" data-go="assurance"><span class="nav-icon">◇</span> Assurance log</button>
+  <div class="project-label">Research workspace</div>
+  <button class="nav active" data-go="workbench" aria-label="Workbench" title="Workbench"><span class="nav-icon" aria-hidden="true">◉</span> Workbench</button>
+  <button class="nav" data-go="pilot" aria-label="Unblinded review practice" title="Unblinded review practice"><span class="nav-icon" aria-hidden="true">▣</span> Unblinded review practice</button>
+  <button class="nav" data-go="records" aria-label="Records" title="Records"><span class="nav-icon" aria-hidden="true">▤</span> Records <span id="recordCount" class="count">0</span></button>
+  <button class="nav" data-go="assurance" aria-label="Assurance log" title="Assurance log"><span class="nav-icon" aria-hidden="true">◇</span> Assurance log</button>
   <div class="side-bottom"><div class="status-dot"></div><div><strong>Local research mode</strong><small>Not for clinical use</small></div></div>
 </aside>
 <main>
-  <header class="topbar"><div class="breadcrumbs">ENGINEERING / <span id="crumb">WORKBENCH</span></div><div class="topright"><span class="version">v0.11.0</span><div class="appearance-controls" role="group" aria-label="Appearance preferences"><label for="themeSelect">Theme</label><select class="appearance-select" id="themeSelect" aria-label="Colour theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select><button type="button" id="motionToggle" class="motion-toggle" aria-pressed="true"><span data-motion-label>Motion on</span></button></div><span class="top-status"><i></i> Offline-first</span></div></header>
+  <header class="topbar"><div class="breadcrumbs">Workspace / <span id="crumb">Workbench</span></div><div class="topright"><span class="version">v0.12.0</span><div class="appearance-controls" role="group" aria-label="Appearance preferences"><label for="themeSelect">Theme</label><select class="appearance-select" id="themeSelect" aria-label="Colour theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select><button type="button" id="motionToggle" class="motion-toggle" aria-pressed="true"><span data-motion-label>Motion on</span></button></div><span class="top-status"><i></i> Local only</span></div></header>
   <div class="warning" role="note"><span class="warn-icon">!</span><p><strong>Research software — not a medical device.</strong> Synthetic demonstrations and real research-data import are separately labelled. No live patient monitoring, diagnosis, alarm suppression or clinical decision-making.</p></div>
   <section id="section-workbench" class="page">
-    <div class="page-head"><div><div class="eyebrow">PHYSIOLOGICAL SIGNAL ANALYSIS</div><h1>Signal workbench<span>.</span></h1><p>Inspect waveforms, stress-test signal integrity and export reproducible engineering evidence.</p></div><button class="btn-secondary" id="downloadReport" disabled>↓ Export evidence JSON</button><button class="btn-secondary" id="printReport" disabled>View printable evidence</button></div>
+    <div class="page-head"><div><div class="eyebrow">Signal analysis</div><h1>Signal workbench</h1><p>Inspect recordings, test signal integrity, and export engineering evidence.</p></div><button class="btn-secondary" id="downloadReport" disabled>↓ Export evidence JSON</button><button class="btn-secondary" id="printReport" disabled>View printable evidence</button></div>
     <div class="metrics"><div class="metric"><small>ACTIVE RECORD</small><strong id="metricRecord">—</strong><span id="metricOrigin">Select a sample below</span></div><div class="metric"><small>SAMPLE RATE</small><strong id="metricHz">—</strong><span>Samples per second</span></div><div class="metric"><small>PROTOTYPE QC FLAGS</small><strong id="metricQc">—</strong><span>Heuristic flags only · no clinical pass status</span></div><div class="metric"><small>CLASSIFIER STATUS</small><strong class="no-model" id="modelState">Not trained</strong><span>Offline research only</span></div></div>
     <div class="panel evidence-panel" id="evidencePanel" aria-live="polite">
-  <div class="panel-header"><div><h2>What this record actually establishes</h2><p>Descriptive measurements and source annotations—not medical conclusions</p></div><span class="pill muted">EVIDENCE FIRST</span></div>
+  <div class="panel-header"><div><h2>Recording evidence</h2><p>Measurements and source annotations. No clinical interpretation.</p></div><span class="pill muted">RECORD FACTS</span></div>
   <div id="evidenceContent" class="evidence-content">Load a research recording to view traceable facts, source limits and missing evidence.</div>
 </div>
 <div class="columns"><div class="left-col">
@@ -31,7 +31,7 @@
     </div></div>
   </section>
   <section id="section-pilot" class="page hidden">
-    <div class="page-head"><div><div class="eyebrow">RETROSPECTIVE EVALUATION · OFFLINE</div><h1>Unblinded review practice<span>.</span></h1><p>A research usability workflow to record expert opinions on previously saved signals.</p></div></div>
+    <div class="page-head"><div><div class="eyebrow">Offline review</div><h1>Unblinded review practice</h1><p>A research usability workflow to record expert opinions on previously saved signals.</p></div></div>
     <div class="pilot-warning"><strong>Not a medical trial or validated AI.</strong> Review de-identified historical recordings only. No bedside decisions, alarm suppression or treatment. Dataset labels are hidden in this review panel until finalization, but are accessible through engineering tools elsewhere; this is <b>not secure blinding</b>. Institutional ethics and governance review may be required for actual human-subjects research.</div>
     <div class="pilot-cards">
       <div class="panel pilot-setup"><h2>1 · Start reviewer session</h2><p>Use an anonymous code, not a person's name, email or hospital ID. Only verified-format original WFDB records can enter the case queue.</p><label for="reviewerCode">REVIEWER CODE</label><input id="reviewerCode" maxlength="32" value="reviewer-01" spellcheck="false" autocomplete="off"/><button class="btn-primary" id="pilotCreate">Create local review session</button><p class="note">Sessions cannot be edited after cases are submitted.</p></div>
@@ -45,9 +45,9 @@
       <div id="pilotMessage" class="note" aria-live="polite"></div></div>
     </div>
   </section>
-  <section id="section-records" class="page hidden"><div class="page-head"><div><div class="eyebrow">PROVENANCE & HISTORY</div><h1>Research records<span>.</span></h1><p>Every derived test preserves a link to its original input.</p></div></div><div class="panel"><div class="panel-header"><h2>Local record library</h2><span class="pill">SQLITE</span></div><div id="recordList" class="record-list"><div class="empty">No records yet</div></div></div></section>
-  <section id="section-assurance" class="page hidden"><div class="page-head"><div><div class="eyebrow">DESIGN CONTROLS</div><h1>Assurance log<span>.</span></h1><p>Auditable engineering history and traceable software requirements.</p></div><button class="btn-secondary" id="refreshAudit">↻ Verify audit</button></div><div class="two-panels"><div class="panel"><div class="panel-header"><h2>Audit integrity</h2><span class="pill" id="auditBadge">UNCHECKED</span></div><div id="auditSummary" class="audit-summary">Run verification to inspect the local hash chain.</div><div id="auditEvents"></div></div><div class="panel"><div class="panel-header"><h2>Software requirements</h2><span class="pill">SWR</span></div><div id="requirements"></div><p class="note requirements-note">These requirements are design documentation, not a statement of IEC or ISO certification.</p></div></div></section>
-<footer>WaveAssure 0.11.0 · Research-only, local development build · No live monitoring or clinical alerts.</footer>
+  <section id="section-records" class="page hidden"><div class="page-head"><div><div class="eyebrow">Records and history</div><h1>Research records</h1><p>Every derived test preserves a link to its original input.</p></div></div><div class="panel"><div class="panel-header"><h2>Local record library</h2><span class="pill">SQLITE</span></div><div id="recordList" class="record-list"><div class="empty">No records yet</div></div></div></section>
+  <section id="section-assurance" class="page hidden"><div class="page-head"><div><div class="eyebrow">Technical audit</div><h1>Assurance log</h1><p>Auditable engineering history and traceable software requirements.</p></div><button class="btn-secondary" id="refreshAudit">↻ Verify audit</button></div><div class="two-panels"><div class="panel"><div class="panel-header"><h2>Audit integrity</h2><span class="pill" id="auditBadge">UNCHECKED</span></div><div id="auditSummary" class="audit-summary">Run verification to inspect the local hash chain.</div><div id="auditEvents"></div></div><div class="panel"><div class="panel-header"><h2>Software requirements</h2><span class="pill">SWR</span></div><div id="requirements"></div><p class="note requirements-note">These requirements are design documentation, not a statement of IEC or ISO certification.</p></div></div></section>
+<footer>WaveAssure 0.12.0 · Research-only, local development build · No live monitoring or clinical alerts.</footer>
 </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

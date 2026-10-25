@@ -1,11 +1,17 @@
 # WaveAssure
-### Physiological Signal Assurance Workbench · Evidence Integrity Research v0.11.0
+### Physiological Signal Assurance Workbench · Interface Craft Research v0.12.0
 
 > **RESEARCH / EDUCATION ONLY. NOT A MEDICAL DEVICE. NOT FOR PATIENT CARE, DIAGNOSIS, ALARM CONTROL, OR CLINICAL MONITORING.**
 
 WaveAssure is an offline-first, full-stack biomedical research project. It loads time series, runs deterministic technical signal-quality checks, injects known faults, generates traceable engineering reports, and provides a separate **optional** training script for the public VTaC ventricular-tachycardia false-alarm benchmark.
 
-See [appearance instructions](docs/APPEARANCE.md) and [actual verification evidence](reports/VERIFICATION_V0.11.md).
+See [interface design decisions](docs/INTERFACE_CRAFT.md), [appearance controls](docs/APPEARANCE.md), and [v0.12 verification evidence](reports/VERIFICATION_V0.12.md).
+
+**v0.12.0 — Intentional engineering interface (NOT clinical validation):**
+- Removed glowing surfaces, sweeping highlights, moving navigation, and oversized decorative effects.
+- Added a readable layout-and-typography layer for workbench/reviewer pages and accessible mobile navigation names.
+- Appearance controls remain; motion defaults off for new browser sessions and keeps only brief interaction feedback when enabled.
+- Research warnings, signal samples, algorithms and unmet medical-device release gates are unchanged. Offline layout and in-process workflow checks are described in the v0.12 verification note.
 
 **v0.11.0 — Accessible appearance and decorative motion (NOT clinical validation):**
 - Light, Dark and System colour themes across the engineering workbench and dedicated offline reviewer page, with browser-local preference storage.

@@ -27,6 +27,15 @@
 
 # Changelog
 
+## 0.12.0 — 2026-10-25 (engineering interface craft)
+
+- Added a maintainable local UI layer for workbench and reviewer pages.
+- Replaced animated ornament with optional, short interaction feedback.
+- Clarified navigation, compact mobile labels and evidence copy.
+- Added three presentation contract tests (local suite: 91 passing fixtures).
+- Clinical study, real classifier training and regulatory approval remain open.
+
+
 ## 0.6.0 — 2026-10-24 (retrospective research reviewer pilot)
 
 - Added localhost-only clinician reviewer usability workspace with anonymized review codes.

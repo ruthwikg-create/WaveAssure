@@ -13,7 +13,7 @@
     try { window.localStorage.setItem(key, value); } catch (_) { /* Browser storage may be disabled. */ }
   }
   const initialTheme = read(KEY_THEME, 'system');
-  const initialMotion = read(KEY_MOTION, 'on');
+  const initialMotion = read(KEY_MOTION, 'off');
   let preference = ['system', 'light', 'dark'].includes(initialTheme) ? initialTheme : 'system';
   let motionPreference = ['on', 'off'].includes(initialMotion) ? initialMotion : 'on';
   function apply() {

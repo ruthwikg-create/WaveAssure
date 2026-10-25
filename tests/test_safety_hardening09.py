@@ -127,7 +127,7 @@ def test_isolated_review_disallows_label_and_engineering_routes(client,monkeypat
                   '/api/research-model/status','/api/import-wfdb', '/api/requirements'):
         assert client.get(route).status_code == 403, route
     assert client.get('/').status_code == 200
-    assert 'Dedicated reviewer workspace' in client.get('/').text
+    assert 'Research review' in client.get('/').text
     assert client.post('/api/pilot/sessions',json={'reviewer_code':'reader-01'}).status_code==401
     h={'X-WaveAssure-Review-Key':key}
     create=client.post('/api/pilot/sessions',json={'reviewer_code':'reader-01'},headers=h)
