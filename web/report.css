@@ -43,6 +43,7 @@ tbody tr{break-inside:avoid}
 thead{display:table-header-group}
 .trace .hash{font-size:10px;color:#5d6c73;overflow-wrap:anywhere;margin:9px 0 3px}
 .trace code{overflow-wrap:anywhere;word-break:break-all}
+.critical{border-left:2px solid #6f7d84;padding-left:10px}
 .report-footer{border-top:1px solid #a9b5bc;padding-top:10px;font-size:10px;line-height:1.5;color:#3c4e56;break-inside:avoid}
 @media(max-width:700px){
  .editor{margin:12px;padding:17px}
