@@ -5,6 +5,8 @@ let recordRequestSequence = 0;
 let windowRequestSequence = 0;
 const replay = {running:false, frame:0, at:0, previous:0, lastMs:0, lastFetchMs:0, pending:false};
 let selectedCSV=null;
+let selectedWFDB=null;
+let fileSelectionSequence=0;
 const clockTime = t => { const v=Math.max(0,Number(t)||0); return String(Math.floor(v/60)).padStart(2,'0')+':'+String(Math.floor(v%60)).padStart(2,'0')+'.'+Math.floor((v%1)*10); };
 function annotatedAlarm(){
  if(!current || current.metadata.parent_id)return null;
@@ -254,11 +256,12 @@ function csvColumnGuess(header){
  if(/^(i|ii|iii|avr|avl|avf|v[1-6]?|ecg.*|lead.*)$/.test(h))return 'ECG';
  return '';
 }
-function showCSVMapping(file){
+function showCSVMapping(file, sequence){
  if(!file)return;
  selectedCSV=file;
- if(file.size>8_000_000){toast('CSV exceeds 8 MB; use a shorter export.');return}
+ if(file.size>8_000_000){text('datasetSelectionStatus','CSV exceeds 8 MB; choose a smaller recording.');selectedCSV=null;return}
  file.slice(0,8192).text().then(head=>{
+   if(sequence!==fileSelectionSequence)return;
    let first=head.replace(/^\uFEFF/,'').split(/\r?\n/)[0];
    const columns=safeCSVHeader(first);
    if(!columns.length||columns.length>60||new Set(columns).size!==columns.length)throw Error('CSV must have unique headers (up to 60)');
@@ -284,7 +287,7 @@ function showCSVMapping(file){
    const timeName=columns.find(c=>csvColumnGuess(c)==='time')||columns[0];time.value=timeName;
    $('csvTimeUnit').value=timeName.toLowerCase().includes('ms')?'ms':'s';
    text('csvMapperStatus','Only checked columns will be imported. Unrecognized/identifying columns cannot be accepted.');
- }).catch(e=>toast('Cannot read CSV header: '+e.message));
+ }).catch(e=>{if(sequence===fileSelectionSequence){$('csvMapper').classList.add('hidden');selectedCSV=null;text('datasetSelectionStatus','Cannot read CSV header: '+e.message);}});
 }
 async function importCSV(){
  if(!selectedCSV)return toast('Choose a CSV file first');
@@ -307,25 +310,54 @@ async function importCSV(){
    time_column:$('csvTimeColumn').value,time_unit:$('csvTimeUnit').value,channel_mapping:mappings,
    alarm_time_s:rawAlarm===''?null:Number(rawAlarm)};
   const response=await request('/api/import-csv',{method:'POST',body:JSON.stringify(payload)});
-  $('csvMapper').classList.add('hidden');selectedCSV=null;$('csvFile').value='';
+  $('csvMapper').classList.add('hidden');selectedCSV=null;resetUnifiedUpload();
   await loadRecord(response.id);await reloadRecords();toast('Custom research CSV imported. Source and units are unverified.');
  }catch(e){text('csvMapperStatus','Import failed: '+e.message);toast('CSV import: '+e.message)}
  finally{button.disabled=false}
 }
+function resetUnifiedUpload(){
+ ++fileSelectionSequence;
+ $('datasetFiles').value='';
+ selectedCSV=null;selectedWFDB=null;
+ $('csvMapper').classList.add('hidden');$('wfdbPairOptions').classList.add('hidden');
+ $('csvAlarmTime').value='';$('wfdbAlarmTime').value='';
+ text('datasetSelectionStatus','No recording selected.');
+}
+function handleDatasetSelection(files){
+ const sequence=++fileSelectionSequence;
+ selectedCSV=null;selectedWFDB=null;
+ $('csvMapper').classList.add('hidden');$('wfdbPairOptions').classList.add('hidden');
+ $('csvAlarmTime').value='';$('wfdbAlarmTime').value='';
+ text('csvMapperStatus','');text('wfdbImportStatus','');
+ const choice=window.WaveAssureDatasetUpload.classify(files);
+ if(choice.kind==='invalid'){
+   text('datasetSelectionStatus',choice.error);
+   return;
+ }
+ if(choice.kind==='csv'){
+   text('datasetSelectionStatus','CSV selected: '+choice.file.name+' — configure columns below.');
+   showCSVMapping(choice.file,sequence);
+   return;
+ }
+ selectedWFDB=choice;
+ text('datasetSelectionStatus','WFDB pair selected: '+choice.header.name+' + '+choice.data.name+'.');
+ text('wfdbPairSummary',choice.header.name+' + '+choice.data.name);
+ $('wfdbPairOptions').classList.remove('hidden');
+}
 async function importWFDBFiles(){
- const hea=$('wfdbHeader').files?.[0],dat=$('wfdbData').files?.[0];
- if(!hea||!dat)return toast('Choose matching .hea and .dat files');
- if(hea.size>8192||dat.size>1_600_000)return toast('WFDB files exceed the bounded format-16 import limits');
+ const pair=selectedWFDB;
+ if(!pair)return toast('Select both matching .hea and .dat files in the single upload input');
  const button=$('importWFDBFiles');button.disabled=true;
  try{
-  const buffer=new Uint8Array(await dat.arrayBuffer());let raw='';
+  const buffer=new Uint8Array(await pair.data.arrayBuffer());let raw='';
   for(let i=0;i<buffer.length;i+=16384)raw+=String.fromCharCode(...buffer.subarray(i,i+16384));
   const time=$('wfdbAlarmTime').value.trim();
   const response=await request('/api/import-wfdb-files',{method:'POST',body:JSON.stringify({
-   header_filename:hea.name,header_text:await hea.text(),data_filename:dat.name,data_base64:btoa(raw),
+   header_filename:pair.header.name,header_text:await pair.header.text(),data_filename:pair.data.name,data_base64:btoa(raw),
    alarm_time_s:time===''?null:Number(time)})});
-  await loadRecord(response.id);await reloadRecords();toast('WFDB pair imported with checksums; no expert reference label.');
- }catch(e){toast('WFDB files: '+e.message)}finally{button.disabled=false}
+  resetUnifiedUpload();
+  await loadRecord(response.id);await reloadRecords();toast('WFDB pair imported with checksums; no verified expert label.');
+ }catch(e){text('wfdbImportStatus','Import failed: '+e.message);toast('WFDB import: '+e.message)}finally{button.disabled=false}
 }
 async function importWFDB(){const path=$('wfdbPath').value.trim();if(!path)return toast('Enter a relative WFDB record path');
  $('importWFDB').disabled=true;
@@ -352,7 +384,7 @@ for(const item of document.querySelectorAll('.nav'))item.addEventListener('click
 for(const item of document.querySelectorAll('[data-demo]'))item.addEventListener('click',()=>createDemo(item.dataset.demo));
 $('injectBtn').addEventListener('click',createFault);$('importWFDB').addEventListener('click',importWFDB);
 $('importWFDBFiles').addEventListener('click',importWFDBFiles);
-$('csvFile').addEventListener('change',event=>showCSVMapping(event.target.files[0]));
+$('datasetFiles').addEventListener('change',event=>handleDatasetSelection(event.target.files));
 $('importCustomCSV').addEventListener('click',importCSV);
 $('replayToggle').addEventListener('click',toggleReplay);
 $('explainAlarm').addEventListener('click',showAlarmExplanation);

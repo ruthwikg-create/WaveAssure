@@ -1,3 +1,10 @@
+## v0.15.0 — Unified research recording file picker (2026-10-25)
+
+- Replace three confusing file selectors with one upload control supporting one mapped CSV or one format-16 WFDB pair.
+- Validate file counts, extensions, matching WFDB basenames and bounded sizes before the server performs its own validation.
+- Explain errors in the UI; preserve advanced server-local WFDB path import without an extra upload input.
+- Add automated single-input, file-combination and layout-hierarchy regression checks. No clinical capability claims.
+
 ## 0.14.0 — 2026-10-25 (alarm explanation and motion control clarity)
 
 - Explain what a matched `.hea` header and `.dat` waveform file contain.
@@ -12,14 +19,6 @@
 - Stop assigning 300 s to arbitrary waveform recordings; display only labelled VTaC timeline annotations or explicit user-supplied unverified markers.
 - Enable custom CSV time/channel/unit mappings and bounded browser import of WFDB format-16 `.hea`/`.dat` pairs without granting expert labels.
 - Add regression cases for time provenance, checksum rejection, unknown events, altered data, and unverified uploads. No clinical claims added.
-
-
-## 0.12.1 — 2026-10-25 (Windows fresh-clone setup fix)
-
-- Fix `scripts/test-windows.bat` failing with repeated "The system cannot find the path specified" on a fresh Git clone because `.venv` has not been created yet.
-- Both test and start launchers now bootstrap a virtual environment using Python 3.11 (or 3.12) and emit actionable errors when unavailable.
-- Add Windows CI execution of the test batch script in a fresh checkout; no automatic deletion of local records or project folders.
-- This change concerns local installation only; no clinical validation or regulatory claims.
 
 ## v0.11.0 — Accessible UI appearance (2026-10-24)
 
@@ -52,11 +51,11 @@
 
 ## 0.12.0 — 2026-10-25 (engineering interface craft)
 
-- Added a maintainable local UI layer for workbench and reviewer pages.
-- Replaced animated ornament with optional, short interaction feedback.
-- Clarified navigation, compact mobile labels and evidence copy.
-- Added three presentation contract tests (local suite: 91 passing fixtures).
-- Clinical study, real classifier training and regulatory approval remain open.
+- Added maintainable CSS design layer for workbench and review UI; no external fonts/frameworks or remote assets.
+- Replaced animated visual ornament with 140 ms optional interaction feedback and no signal animation.
+- Clarified hierarchy and copy; fixed clipped mobile navigation with accessible labels and `aria-current` state.
+- Added presentation regression checks and source-specific verification notes.
+- Clinical study, model training and safety approvals remain open.
 
 
 ## 0.6.0 — 2026-10-24 (retrospective research reviewer pilot)

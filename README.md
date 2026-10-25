@@ -3,6 +3,8 @@
 
 > **RESEARCH / EDUCATION ONLY. NOT A MEDICAL DEVICE. NOT FOR PATIENT CARE, DIAGNOSIS, ALARM CONTROL, OR CLINICAL MONITORING.**
 
+**v0.15.0 — Single custom dataset picker:** Choose one CSV or select a matched format-16 WFDB `.hea` + `.dat` pair together; the UI automatically presents the correct validation and mapping controls. There is only one visible file input. Unsupported formats remain unsupported. See `docs/UNIFIED_DATASET_IMPORT.md`.
+
 **v0.14.0 UI clarification:** In Waveform review, click **Explain alarm**, **Jump to alarm**, or the orange alarm marker to inspect the available recorded evidence. Expert VTaC True/False labels are explicitly distinguished from user-entered timestamps; neither is a fresh medical diagnosis. The top-bar **UI effects** switch is decorative only; **Play recording** moves the historical waveform. The paired WFDB pickers take the `.hea` header and matching `.dat` samples. See [alarm evidence guide](docs/ALARM_EVENTS.md).
 
 
