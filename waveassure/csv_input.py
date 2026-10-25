@@ -2,11 +2,28 @@
 import csv
 import io
 import math
+import re
 from .schemas import CSVImport, Channel, RecordCreate, CSVChannelMap
 
 CHANNEL_HEADERS = {'ECG_mV': ('ECG', 'mV'), 'PPG_au': ('PPG', 'a.u.'), 'ABP_mmHg': ('ABP', 'mmHg')}
 SENSITIVE_WORDS = {'patient', 'subject', 'name', 'first_name', 'last_name', 'dob',
                    'birth', 'email', 'phone', 'address', 'mrn', 'medical_record', 'person_id'}
+
+
+# These are metadata/summary labels, not recorded waveform sample columns.
+# Enforce this in the server even when the browser is bypassed.
+NON_WAVEFORM_TOKENS = {'alert', 'alarm', 'flag', 'status', 'accuracy',
+                       'diagnosis', 'diagnostic', 'risk', 'classification',
+                       'label', 'warning'}
+SCALAR_MEASUREMENT_HEADERS = {'heart_rate', 'heartrate', 'pulse_rate',
+                              'spo2', 'oxygen_saturation', 'respiration_rate',
+                              'respiratory_rate', 'body_temperature', 'temperature'}
+
+
+def is_non_waveform_column(header: str) -> bool:
+    normalized = re.sub(r'[^a-z0-9]+', '_', header.strip().lower()).strip('_')
+    return normalized in SCALAR_MEASUREMENT_HEADERS or bool(
+        set(normalized.split('_')) & NON_WAVEFORM_TOKENS)
 
 
 def parse_csv(data: CSVImport) -> RecordCreate:
@@ -16,7 +33,7 @@ def parse_csv(data: CSVImport) -> RecordCreate:
         raise ValueError('CSV needs unique, nonempty column headers')
     lowered = [h.lower().replace(' ', '_') for h in headers]
     if any(any(token in h for token in SENSITIVE_WORDS) for h in lowered):
-        raise ValueError('Unsupported columns: identifying headers are prohibited; de-identify the CSV first')
+        raise ValueError('Identifying column headers are not allowed (such as Patient Number). Remove identifiers from the source CSV before import. Patient-level alert tables are not waveform recordings.')
     explicit = data.channel_mapping is not None
     if explicit:
         if len(data.channel_mapping) < 1 or len(data.channel_mapping) > 8:
@@ -29,6 +46,9 @@ def parse_csv(data: CSVImport) -> RecordCreate:
             raise ValueError('Unsupported columns (including identifiers) forbidden: ' + ', '.join(sorted(extra)))
         chosen = [CSVChannelMap(column=h, kind=CHANNEL_HEADERS[h][0], unit=CHANNEL_HEADERS[h][1], name=CHANNEL_HEADERS[h][0])
                   for h in CHANNEL_HEADERS if h in headers]
+    disallowed = [c.column for c in chosen if is_non_waveform_column(c.column)]
+    if disallowed:
+        raise ValueError('Alert, quality and scalar vital-sign columns cannot be mapped as waveform samples: ' + ', '.join(disallowed) + '. Import recorded ECG/PPG/ABP waveform samples with elapsed time, not patient summary or alert tables.')
     if data.time_column not in headers:
         raise ValueError('Selected time column is missing')
     if not chosen:
