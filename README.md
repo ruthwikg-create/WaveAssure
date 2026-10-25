@@ -1,4 +1,8 @@
 # WaveAssure
+
+**v0.18 — Replay, event-hover and dataset onboarding:** Recorded-time replay has a visible moving green playhead, including recordings shorter than the current viewing window. Hover/focus an orange EVENT marker to inspect its documented time, source and genuine/false VT reference when one exists. Original bedside buzzer times are **never fabricated**: a user annotation remains unverified, the optional playback tone is browser-generated, and a false VT alarm is not proof of normal physiology. A sample-index sweep is available for wide ECG segment CSVs. Run `py -3 scripts/generate-research-waveform-csv.py` for a known-compatible **synthetic** CSV. See [dataset & replay guide](docs/REPLAY_DATA_ALARM_GUIDE_V018.md).
+
+
 ### Physiological Signal Assurance Workbench · Recorded Replay & Custom Import Research v0.13.0
 
 > **RESEARCH / EDUCATION ONLY. NOT A MEDICAL DEVICE. NOT FOR PATIENT CARE, DIAGNOSIS, ALARM CONTROL, OR CLINICAL MONITORING.**
