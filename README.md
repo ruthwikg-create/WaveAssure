@@ -1,5 +1,9 @@
 # WaveAssure
 
+**v0.21 — Professional print preview:** Select a loaded record and click **Prepare printable evidence**. The separate page has a de-identified patient/research details form, immediately followed by a simple A4 evidence report with recording facts, source-linked alarm reference, raw signal measurements, record traceability and reviewer notes. Add details and use **Print / Save as PDF**. Enter synthetic or de-identified research labels only: inputs remain in that browser page and are **not uploaded or saved**, and the normal evidence JSON remains independent. No clinical diagnosis or device clearance is implied.
+
+
+
 **v0.20 event inspection:** Hover an orange EVENT marker to read the source alarm reference (e.g. **genuine VT = ventricular tachycardia alarm as annotated by VTaC**) and observed unverified waveform values from the hovered channel. Click it to inspect all ECG/PPG/ABP channels within ±2 seconds. The app does **not** automatically diagnose ECG rhythm subtypes or determine clinical heart-rate, SpO₂ or blood-pressure high/low alarms without verified input and medical validation. See [event context and clinical limits](docs/EVENT_SIGNAL_CONTEXT_V020.md).
 
 
