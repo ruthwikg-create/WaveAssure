@@ -71,3 +71,20 @@
 .ecg-matrix-heading span{font-size:11px;color:var(--muted)}
 .ecg-matrix-chart canvas{display:block;width:100%;height:180px}
 .ecg-matrix-chart p{margin-top:10px;line-height:1.5}
+
+/* Event marker hover and recorded-time feedback: factual dataset annotations only. */
+.plot{position:relative}
+.plot canvas:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:3px}
+.plot .alarm-hover-tip{
+ position:absolute;z-index:4;bottom:12px;width:min(300px,calc(100% - 10px));
+ padding:10px 12px;border:1px solid var(--line);border-left:3px solid var(--orange);
+ border-radius:7px;background:var(--panel);color:var(--text);
+ font-size:11px;line-height:1.55;box-shadow:0 8px 22px #0003;
+ pointer-events:none;overflow-wrap:anywhere
+}
+.replay-event-status{padding:9px 12px;border:1px solid var(--line);
+ border-radius:6px;background:var(--panel2);color:var(--muted);
+ font-size:12px;line-height:1.6}
+.dataset-format-guide{font-size:12px;color:var(--muted);line-height:1.7}
+.dataset-format-guide summary{cursor:pointer;font-weight:650;color:var(--text)}
+.dataset-format-guide code{overflow-wrap:anywhere;color:var(--text)}
