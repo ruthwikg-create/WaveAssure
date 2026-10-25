@@ -1,3 +1,10 @@
+## v0.17.0 — Local ECG beat matrix preview (2026-10-25)
+
+- Keep one research upload input; detect wide numeric CSVs as possible row-wise ECG segment datasets.
+- Preview one ordered sample segment by row, using sample-index plotting and uncalibrated original amplitude values. Require an explicit researcher confirmation and expose header/last-label settings.
+- Do not invent timing, sample rates, ECG millivolts, alarm occurrences, expert labels or clinical predictions; do not persist beat matrices as continuous waveforms.
+- Add synthetic parser and browser-source contract regression tests. The uploaded third-party dataset has not been provided for independent inspection.
+
 ## v0.15.0 — Unified research recording file picker (2026-10-25)
 
 - Replace three confusing file selectors with one upload control supporting one mapped CSV or one format-16 WFDB pair.
