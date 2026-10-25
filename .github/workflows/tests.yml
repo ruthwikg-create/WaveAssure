@@ -29,6 +29,10 @@ jobs:
           node --check web/theme.js
       - name: Run synthetic fixture and adversarial tests
         run: python -m pytest -q --junitxml=reports/junit-v0.11.xml
+      - name: Test fresh-clone Windows setup script
+        if: runner.os == 'Windows' && matrix.python-version == '3.11'
+        shell: cmd
+        run: call scripts\test-windows.bat
       - name: Generate conservative release decision
         run: python scripts/clinical_readiness_audit.py
       - name: Preserve verification evidence

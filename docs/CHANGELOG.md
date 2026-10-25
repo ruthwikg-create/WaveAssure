@@ -1,3 +1,10 @@
+## 0.12.1 — 2026-10-25 (Windows fresh-clone setup fix)
+
+- Fix `scripts/test-windows.bat` failing with repeated "The system cannot find the path specified" on a fresh Git clone because `.venv` has not been created yet.
+- Both test and start launchers now bootstrap a virtual environment using Python 3.11 (or 3.12) and emit actionable errors when unavailable.
+- Add Windows CI execution of the test batch script in a fresh checkout; no automatic deletion of local records or project folders.
+- This change concerns local installation only; no clinical validation or regulatory claims.
+
 ## v0.11.0 — Accessible UI appearance (2026-10-24)
 
 - Add System / Light / Dark theme preference with browser-local persistence.
