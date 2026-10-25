@@ -21,7 +21,7 @@ def _mapped(csv_text, kind='ECG', column='ECG_mV'):
 
 def test_patient_number_header_rejected_even_if_not_selected():
     content=_body(['time_s','ECG_mV','Patient Number'])
-    with pytest.raises(ValueError,match='Identifying column headers'):
+    with pytest.raises(ValueError,match='Unsupported columns: Identifying column headers'):
         parse_csv(_mapped(content))
 
 
