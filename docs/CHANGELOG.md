@@ -1,3 +1,10 @@
+## v0.22.0 — Local startup readiness fix (2026-10-25)
+
+- Fix Windows startup race: Chrome used to launch **before** Uvicorn was accepting connections, resulting in an initial ERR_CONNECTION_REFUSED.
+- Open the browser only after a successful localhost /api/health check confirms the research engineering workbench is ready.
+- Preserve foreground Uvicorn output for Python startup errors, detect a foreign service occupying port 8000, and avoid launching duplicate servers.
+- Add simulated startup health/port regression tests for failure and success paths. Remote access remains disabled; clinical validation is not implied.
+
 ## v0.21.0 — Professional A4 printable research evidence (2026-10-25)
 
 - Replace the dense 11-column research table / repeated limitations with a monochrome A4 evidence report, five sections, readable channel measurements and compact source traceability.
