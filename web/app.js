@@ -112,6 +112,25 @@ function onAlarmCanvasClick(event,canvas,w){
  const local=event.clientX-canvas.getBoundingClientRect().left;
  if(Math.abs(local-x)<=24)showAlarmExplanation();
 }
+function alarmTooltipText(){
+ const time=annotatedAlarm();
+ if(time===null)return '';
+ const summary=window.WaveAssureAlarmEvent.explain(current,time);
+ return clockTime(time)+' ('+time.toFixed(3)+' seconds) · '+summary.status+
+   '. '+summary.reason+' Source: '+summary.source;
+}
+function hoverAlarm(event,canvas,w,tooltip){
+ const x=alarmMarkerPosition(canvas,w);
+ const left=event.clientX-canvas.getBoundingClientRect().left;
+ const active=x!==null&&Math.abs(left-x)<=24;
+ canvas.style.cursor=active?'pointer':'default';
+ tooltip.classList.toggle('hidden',!active);
+ if(active){
+   tooltip.textContent=alarmTooltipText();
+   const edge=Math.max(0,canvas.getBoundingClientRect().width-300);
+   tooltip.style.left=Math.max(4,Math.min(edge,x-130))+'px';
+ }
+}
 function renderAlarm(){
  const alarm=annotatedAlarm();
  $('jumpAlarm').disabled=(alarm===null);
@@ -165,7 +184,32 @@ async function loadRecord(id){
   $('alarmExplanation').classList.add('hidden');
   $('explainAlarm').setAttribute('aria-expanded','false');
   const container=$('plots');container.replaceChildren();
-  for(const w of r.waveforms){const wrap=el('div','plot');const info=el('div','plot-info');info.append(el('strong','',w.name||w.kind),el('small','',w.unit+' · sampled preview'));wrap.append(info);const canvas=el('canvas');canvas.setAttribute('role','img');canvas.setAttribute('aria-label',(w.name||w.kind)+' signal preview');wrap.append(canvas);container.append(wrap);draw(canvas,w);canvas.addEventListener('click',event=>onAlarmCanvasClick(event,canvas,(current?.waveforms||[]).find(s=>s.name===w.name)||w));canvas.addEventListener('mousemove',event=>{const active=(current?.waveforms||[]).find(s=>s.name===w.name)||w;const x=alarmMarkerPosition(canvas,active);canvas.style.cursor=x!==null&&Math.abs(event.clientX-canvas.getBoundingClientRect().left-x)<=24?'pointer':'default';});}
+  for(const w of r.waveforms){
+    const wrap=el('div','plot');const info=el('div','plot-info');
+    info.append(el('strong','',w.name||w.kind),el('small','',w.unit+' · sampled preview'));
+    wrap.append(info);
+    const canvas=el('canvas');
+    canvas.setAttribute('role','img');
+    canvas.setAttribute('aria-label',(w.name||w.kind)+' signal · hover the orange event marker or focus for its reference meaning');
+    canvas.setAttribute('tabindex','0');
+    const tooltip=el('div','alarm-hover-tip hidden');
+    tooltip.setAttribute('role','tooltip');
+    tooltip.id='alarmTip'+container.children.length;
+    canvas.setAttribute('aria-describedby',tooltip.id);
+    wrap.append(canvas,tooltip);container.append(wrap);
+    const active=()=> (current?.waveforms||[]).find(c=>c.name===w.name)||w;
+    canvas.addEventListener('click',event=>onAlarmCanvasClick(event,canvas,active()));
+    canvas.addEventListener('mousemove',event=>hoverAlarm(event,canvas,active(),tooltip));
+    canvas.addEventListener('mouseleave',()=>tooltip.classList.add('hidden'));
+    canvas.addEventListener('focus',()=>{if(annotatedAlarm()!==null){
+       tooltip.textContent=alarmTooltipText();tooltip.style.left='8px';tooltip.classList.remove('hidden');
+    }});
+    canvas.addEventListener('blur',()=>tooltip.classList.add('hidden'));
+    canvas.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&annotatedAlarm()!==null){
+       event.preventDefault();showAlarmExplanation();
+    }});
+    draw(canvas,w);
+   }
   $('windowTools').classList.remove('hidden');
   const duration=r.analysis.duration_s;
   const win=duration>=30?30:duration>=10?10:duration>=5?5:duration>=2?2:1;
@@ -205,8 +249,18 @@ function draw(canvas,w, settings={}){
   ctx.save();ctx.beginPath();ctx.setLineDash([4,3]);ctx.strokeStyle=palette.getPropertyValue('--orange').trim();ctx.lineWidth=1.5;
   ctx.moveTo(mark,pad.top);ctx.lineTo(mark,height-pad.bottom);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle=palette.getPropertyValue('--orange').trim();ctx.font='bold 10px system-ui';
-  ctx.fillText('ALARM '+clockTime(alarm),Math.min(mark+4,width-110),pad.top+11);ctx.restore();
+  ctx.fillText('EVENT '+clockTime(alarm),Math.min(mark+4,width-110),pad.top+11);ctx.restore();
  }
+  // A moving recorded-time cursor remains visible while its waveform window is static.
+  if(replay.running){
+    const x=window.WaveAssureReplay.cursorX(w,replay.playhead,width,pad.left,pad.right);
+    if(x!==null){
+      ctx.save();ctx.strokeStyle=palette.getPropertyValue('--mint').trim();ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(x,pad.top);ctx.lineTo(x,height-pad.bottom);ctx.stroke();
+      ctx.fillStyle=palette.getPropertyValue('--mint').trim();
+      ctx.beginPath();ctx.arc(x,pad.top+4,3,0,Math.PI*2);ctx.fill();ctx.restore();
+    }
+  }
 }
 function showQuality(channels, origin){
  const cont=$('quality');cont.replaceChildren();
