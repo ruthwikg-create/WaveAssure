@@ -43,10 +43,12 @@ if errorlevel 1 (
   exit /b 1
 )
 echo [WaveAssure] Starting local research application at http://127.0.0.1:8000
-start "" http://127.0.0.1:8000
-"%VENV_PY%" -m uvicorn waveassure.api:app --host 127.0.0.1 --port 8000
+echo [WaveAssure] Chrome opens only after the local server reports ready.
+"%VENV_PY%" -u scripts\run-local.py
 if errorlevel 1 (
-  echo [WaveAssure] ERROR: Server could not start. Check whether port 8000 is already in use.
+  echo [WaveAssure] ERROR: Application did not start. Read the Python/Uvicorn error printed above.
+  echo [WaveAssure] For a direct error trace, run:
+  echo [WaveAssure]   .\.venv\Scripts\python.exe -m uvicorn waveassure.api:app --host 127.0.0.1 --port 8000
   exit /b 1
 )
 exit /b 0
