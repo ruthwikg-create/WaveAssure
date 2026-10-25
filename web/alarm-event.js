@@ -23,7 +23,7 @@
         status: label === 'True' ? 'Reference: genuine VT alarm' : 'Reference: false VT alarm',
         classification: label === 'True' ? 'Expert dataset annotation: True VT.' : 'Expert dataset annotation: False VT.',
         reason: label === 'True'
-          ? 'The VTaC dataset labels this original VT (ventricular tachycardia) alarm genuine. VT is the reference alarm category, NOT an independent WaveAssure diagnosis. A more specific ECG morphology subtype and other parameter high/low alarms have not been established.'
+          ? 'The VTaC dataset labels this original VT (ventricular tachycardia) alarm genuine. VT is the reference alarm category, NOT a WaveAssure prediction or an independent WaveAssure diagnosis. A more specific ECG morphology subtype and other parameter high/low alarms have not been established.'
           : 'The VTaC dataset marks this VT (ventricular tachycardia) alarm false. This does NOT establish a normal heart rhythm or rule out other abnormalities. A separate ECG morphology subtype and other clinical alarm causes cannot be inferred.',
         source: record.alarm_time_source === 'dataset_annotation'
           ? 'Local VTaC event_labels.csv and documented VTaC alarm onset; independent file authenticity not established.'
