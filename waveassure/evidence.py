@@ -56,15 +56,22 @@ def window_statistics(record: RecordCreate, start_s: float, end_s: float) -> dic
 def create_evidence(record: RecordCreate, metadata: dict[str, Any], audit_verification: dict[str, Any]) -> dict[str, Any]:
     is_original_wfdb = record.origin == 'wfdb_research' and metadata.get('parent_id') is None
     duration = len(record.channels[0].samples) / record.sample_rate_hz
-    has_event = is_original_wfdb and duration >= ALARM_T
+    # Legacy original VTaC labelled recordings from older builds had no explicit time.
+    legacy_event = (is_original_wfdb and record.alarm_time_s is None
+                    and record.reference_label in ('True', 'False')
+                    and 'VTaC' in record.source_reference and duration >= ALARM_T)
+    event_t = record.alarm_time_s if record.alarm_time_s is not None else (ALARM_T if legacy_event else None)
+    has_event = metadata.get('parent_id') is None and event_t is not None and event_t <= duration
+    source = (record.alarm_time_source if record.alarm_time_s is not None else
+              'legacy_vtac_dataset_label' if legacy_event else None)
     reference = record.reference_label if is_original_wfdb else 'Unlabeled'
     # Derived records never inherit the adjudicated source label.
     if metadata.get('parent_id') is not None:
         reference = 'Unlabeled'
     windows = {'entire_recording': window_statistics(record, 0, duration)}
     if has_event:
-        windows['pre_alarm_30s'] = window_statistics(record, ALARM_T - WINDOW_SECONDS, ALARM_T)
-        windows['post_alarm_30s'] = window_statistics(record, ALARM_T, ALARM_T + WINDOW_SECONDS)
+        windows['pre_alarm_30s'] = window_statistics(record, max(0, event_t-WINDOW_SECONDS), event_t)
+        windows['post_alarm_30s'] = window_statistics(record, event_t, min(duration,event_t+WINDOW_SECONDS))
     return {
         'schema': EVIDENCE_SCHEMA,
         'created_at_utc': datetime.now(timezone.utc).isoformat(),
@@ -85,9 +92,10 @@ def create_evidence(record: RecordCreate, metadata: dict[str, Any], audit_verifi
         'reference_annotation': {
             'label': reference,
             'type': 'EXTERNAL_DATASET_REFERENCE' if reference in ('True','False') else 'NOT_AVAILABLE',
-            'event_type': 'ventricular_tachycardia_alarm' if has_event else None,
-            'event_time_s': ALARM_T if has_event else None,
-            'annotation_scope': 'Single event at 300 s, not an interpretation of the full recording' if has_event else None,
+            'event_type': 'ventricular_tachycardia_alarm' if has_event and reference in ('True','False') else None,
+            'event_time_s': event_t if has_event else None,
+            'event_time_source': source if has_event else None,
+            'annotation_scope': 'A timestamp annotation, not an original audio recording or a model prediction' if has_event else None,
             'independently_verified_by_waveassure': False,
         },
         'descriptive_measurements': windows,

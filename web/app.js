@@ -3,6 +3,67 @@ let current = null;
 let researchModelAvailable = false;
 let recordRequestSequence = 0;
 let windowRequestSequence = 0;
+const replay = {running:false, frame:0, at:0, previous:0, lastMs:0, lastFetchMs:0, pending:false};
+let selectedCSV=null;
+const clockTime = t => { const v=Math.max(0,Number(t)||0); return String(Math.floor(v/60)).padStart(2,'0')+':'+String(Math.floor(v%60)).padStart(2,'0')+'.'+Math.floor((v%1)*10); };
+function annotatedAlarm(){
+ if(!current || current.metadata.parent_id)return null;
+ if(current.alarm_time_s !== null && Number.isFinite(current.alarm_time_s))return current.alarm_time_s;
+ // Older stored VTaC event records were saved without an explicit timestamp.
+ if(current.metadata.origin==='wfdb_research' && ['True','False'].includes(current.reference_label)
+    && String(current.source_reference||'').includes('VTaC') && current.analysis.duration_s>=300)return 300;
+ return null;
+}
+function replayLimit(){return Math.max(0,(current?.analysis.duration_s||0)-Number($('windowSeconds').value));}
+function pauseReplay(){replay.running=false;cancelAnimationFrame(replay.frame);replay.frame=0;replay.pending=false;$('replayToggle').textContent='▶ Play recording';$('replayToggle').setAttribute('aria-pressed','false');}
+function simulatedTone(){
+ if(!$('alarmTone').checked)return;
+ try { const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass)return;
+ const ac=new AudioContextClass(),osc=ac.createOscillator(),gain=ac.createGain();
+ osc.type='sine';osc.frequency.value=520;gain.gain.setValueAtTime(0.0001,ac.currentTime);
+ gain.gain.exponentialRampToValueAtTime(0.045,ac.currentTime+0.01);
+ gain.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+0.16);
+ osc.connect(gain);gain.connect(ac.destination);osc.start();osc.stop(ac.currentTime+0.18);
+ osc.onended=()=>ac.close();
+ }catch(_){ /* Audio preview is optional and not part of the source recording. */ }
+}
+function replayStep(now){
+ if(!replay.running||!current)return;
+ if(document.hidden){pauseReplay();return;}
+ const dt=replay.lastMs?Math.min(0.25,(now-replay.lastMs)/1000):0;
+ replay.lastMs=now;
+ const speed=Number($('replaySpeed').value)||1;
+ const before=replay.at + Number($('windowSeconds').value)/2;
+ replay.at=Math.min(replayLimit(),replay.at+Math.max(0,dt)*speed);
+ const after=replay.at + Number($('windowSeconds').value)/2;
+ const alarm=annotatedAlarm();
+ if(alarm!==null && before<alarm && after>=alarm)simulatedTone();
+ $('windowStart').value=String(replay.at);
+ text('windowStartValue',clockTime(replay.at));text('replayClock',clockTime(after));
+ if(!replay.pending && now-replay.lastFetchMs>=180){
+   replay.lastFetchMs=now;replay.pending=true;
+   refreshWindow(replay.at).finally(()=>{replay.pending=false});
+ }
+ if(replay.at >= replayLimit()){pauseReplay();return;}
+ replay.frame=requestAnimationFrame(replayStep);
+}
+function toggleReplay(){
+ if(!current)return;
+ if(replay.running){pauseReplay();return;}
+ if(replay.at >= replayLimit())replay.at=0;
+ replay.running=true;replay.lastMs=0;replay.lastFetchMs=0;
+ $('replayToggle').textContent='Ⅱ Pause recording';$('replayToggle').setAttribute('aria-pressed','true');
+ replay.frame=requestAnimationFrame(replayStep);
+}
+function renderAlarm(){
+ const alarm=annotatedAlarm();
+ $('jumpAlarm').disabled=(alarm===null);
+ if(alarm===null){text('alarmDetail','No alarm timestamp is documented for this recording. WaveAssure cannot infer the original buzzer time.');return;}
+ const source=current.alarm_time_source==='dataset_annotation'?'Local VTaC label file (not independently authenticated)':
+  current.alarm_time_source==='user_annotation_unverified'?'User-entered timestamp (unverified)':'Legacy VTaC dataset reference';
+ text('alarmDetail','Alarm marker at '+clockTime(alarm)+' ('+alarm.toFixed(3)+' s) · '+source+'. No original monitor audio was imported.');
+}
+
 const $ = id => document.getElementById(id);
 const text = (id, value) => { $(id).textContent = String(value); };
 const toast = msg => { const el=$('toast'); el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),4200); };
@@ -13,6 +74,7 @@ async function request(url, options={}) {
   return data;
 }
 function setSection(section){
+  if(section!=='workbench')pauseReplay();
   for(const name of ['workbench','pilot','records','assurance'])$('section-'+name).classList.toggle('hidden',name!==section);
   document.querySelectorAll('.nav').forEach(el=>el.classList.toggle('active',el.dataset.go===section));
   text('crumb',{workbench:'Workbench',pilot:'Review practice',records:'Records',assurance:'Assurance log'}[section] || section);
@@ -23,6 +85,7 @@ function setSection(section){
 }
 const el=(tag,cls,textValue)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(textValue!==undefined)node.textContent=textValue;return node;};
 async function loadRecord(id){
+ pauseReplay();
  const sequence = ++recordRequestSequence;
  ++windowRequestSequence;
  try{
@@ -31,27 +94,37 @@ async function loadRecord(id){
   current=loaded;
   const r=current, name=r.metadata.title;
   text('metricRecord',name.length>22?name.substring(0,21)+'…':name);
-  text('metricOrigin',r.metadata.parent_id?'Derived fault experiment · not an expert-labelled recording':r.metadata.origin==='synthetic'?'Synthetic educational data':r.metadata.origin==='wfdb_research'?'Local WFDB • dataset label (not AI): '+r.reference_label:'Unverified research recording');
+  text('metricOrigin',r.metadata.parent_id?'Derived fault experiment · not an expert-labelled recording':r.metadata.origin==='synthetic'?'Synthetic educational data':r.metadata.origin==='wfdb_research'?(r.reference_label==='Unlabeled'?'Custom WFDB · no verified expert label':'Local WFDB · dataset label (not AI): '+r.reference_label):'Unverified research recording');
   text('metricHz',r.sampling_hz+' Hz');
   text('metricQc',r.analysis.status==='TECHNICAL_CHECKS_PASSED'?'No flags*':'Flags found');
   text('waveformSubtitle',r.full_sample_count.toLocaleString()+' samples per channel · '+r.analysis.duration_s+' s');
   text('sourcePill',r.metadata.parent_id?'DERIVED FAULT · RESEARCH':r.metadata.origin==='synthetic'?'SYNTHETIC':r.metadata.origin==='wfdb_research'?'LOCAL WFDB · RESEARCH':'UNVERIFIED');
   $('downloadReport').disabled=false;$('printReport').disabled=false;$('injectBtn').disabled=false;
-  $('assessBtn').disabled= !(researchModelAvailable && r.metadata.origin==='wfdb_research' && !r.metadata.parent_id);
+  $('assessBtn').disabled= !(researchModelAvailable && r.metadata.origin==='wfdb_research' && !r.metadata.parent_id && ['True','False'].includes(r.reference_label));
   text('assessmentResult','No research inference run for this selection.');
   const channelSelect=$('faultChannel');channelSelect.replaceChildren();
   r.waveforms.forEach(w=>{const opt=el('option','',w.name||w.kind);opt.value=w.name||w.kind;channelSelect.append(opt)});
   const container=$('plots');container.replaceChildren();
   for(const w of r.waveforms){const wrap=el('div','plot');const info=el('div','plot-info');info.append(el('strong','',w.name||w.kind),el('small','',w.unit+' · sampled preview'));wrap.append(info);const canvas=el('canvas');canvas.setAttribute('role','img');canvas.setAttribute('aria-label',(w.name||w.kind)+' signal preview');wrap.append(canvas);container.append(wrap);draw(canvas,w)}
-  const isWFDB=r.metadata.origin==='wfdb_research'; $('windowTools').classList.toggle('hidden',!isWFDB);
-  if(isWFDB){ $('windowSeconds').value='30'; $('windowStart').max=Math.max(0,Math.floor(r.analysis.duration_s-10)); $('windowStart').value=Math.min(285,Number($('windowStart').max)); text('windowStartValue',$('windowStart').value+' s'); }
+  $('windowTools').classList.remove('hidden');
+  const duration=r.analysis.duration_s;
+  const win=duration>=30?30:duration>=10?10:duration>=5?5:duration>=2?2:1;
+  $('windowSeconds').value=String([1,2,5,10,30,60,360].includes(win)?win:1);
+  const max=Math.max(0,duration-Number($('windowSeconds').value));
+  const alarm=annotatedAlarm();
+  const start=(alarm===null?0:Math.max(0,Math.min(max,alarm-20)));
+  $('windowStart').max=String(max); $('windowStart').value=String(start);
+  replay.at=start;replay.previous=start;
+  text('windowStartValue',clockTime(start));text('replayClock',clockTime(start+Number($('windowSeconds').value)/2));
+  renderAlarm();
   showQuality(r.analysis.quality_checks, r.metadata.origin);
   loadEvidence(id);
+  refreshWindow(start);
   if(window.innerWidth<700)window.scrollTo({top:0,behavior:document.documentElement.dataset.motion==='on'?'smooth':'instant'});
   return true;
  }catch(e){if(sequence===recordRequestSequence)toast(e.message);return false}
 }
-function draw(canvas,w){
+function draw(canvas,w, settings={}){
  const dpr=window.devicePixelRatio||1;const bounds=canvas.getBoundingClientRect();const width=Math.max(260,bounds.width);const height=126;
  canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);
  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
@@ -65,7 +138,14 @@ function draw(canvas,w){
  const tmin=w.t[0]||0;const tmax=w.t[w.t.length-1]||1;const trange=Math.max(.001,tmax-tmin);ctx.strokeStyle=colors[w.kind]||colors.ECG;ctx.lineWidth=1.4;ctx.lineJoin='round';ctx.beginPath();let started=false;
  for(let i=0;i<w.values.length;i++){const v=w.values[i];if(v===null||!Number.isFinite(v)){started=false;continue}const x=pad.left+(w.t[i]-tmin)/trange*W,y=pad.top+(max-v)/(max-min)*H;if(!started){ctx.moveTo(x,y);started=true}else{ctx.lineTo(x,y)}}ctx.stroke();
  ctx.font='10px system-ui';ctx.fillStyle=palette.getPropertyValue('--muted').trim();ctx.fillText(tmin.toFixed(1)+' s',pad.left,height-1);ctx.fillText(tmax.toFixed(1)+' s',width-55,height-1);
- if(current && current.metadata.origin==='wfdb_research' && tmin<=300 && tmax>=300){const mark=pad.left+(300-tmin)/trange*W;ctx.beginPath();ctx.setLineDash([4,3]);ctx.strokeStyle=palette.getPropertyValue('--orange').trim();ctx.moveTo(mark,pad.top);ctx.lineTo(mark,height-pad.bottom);ctx.stroke();ctx.setLineDash([]);}
+ const alarm = settings.hideAlarm ? null : annotatedAlarm();
+ if(alarm!==null && tmin<=alarm && tmax>=alarm){
+  const mark=pad.left+(alarm-tmin)/trange*W;
+  ctx.save();ctx.beginPath();ctx.setLineDash([4,3]);ctx.strokeStyle=palette.getPropertyValue('--orange').trim();ctx.lineWidth=1.5;
+  ctx.moveTo(mark,pad.top);ctx.lineTo(mark,height-pad.bottom);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=palette.getPropertyValue('--orange').trim();ctx.font='bold 10px system-ui';
+  ctx.fillText('ALARM '+clockTime(alarm),Math.min(mark+4,width-110),pad.top+11);ctx.restore();
+ }
 }
 function showQuality(channels, origin){
  const cont=$('quality');cont.replaceChildren();
@@ -97,7 +177,7 @@ async function loadEvidence(id){
   panel.append(grid);
   const pre=r.descriptive_measurements.pre_alarm_30s;
   if(pre){
-   const heading=el('h3','','Measured 30 seconds BEFORE alarm (270–300 s)');panel.append(heading);
+   const heading=el('h3','','Measured samples before annotated alarm ('+clockTime(pre.start_s)+'–'+clockTime(pre.end_s)+')');panel.append(heading);
    const table=el('table','evidence-table');
    const head=el('tr');for(const x of ['Signal','Measured samples','Missing samples','Mean','Unit'])head.append(el('th','',x));table.append(head);
    for(const c of pre.channels){const tr=el('tr');for(const v of [c.channel,c.valid_samples,c.missing_samples,c.mean===null?'Not available':c.mean,c.unit])tr.append(el('td','',String(v)));table.append(tr)}
@@ -120,21 +200,134 @@ async function loadAudit(){
 async function createDemo(kind){try{const d=await request('/api/demo?kind='+encodeURIComponent(kind),{method:'POST'});if(await loadRecord(d.id))toast('Synthetic recording created.');await reloadRecords()}catch(e){toast(e.message)}}
 async function createFault(){if(!current)return;try{const fault={kind:$('faultType').value,target:$('faultChannel').value,severity:Number($('faultSeverity').value)};
  const d=await request('/api/records/'+current.metadata.id+'/fault',{method:'POST',body:JSON.stringify(fault)});if(await loadRecord(d.id))toast('Fault injected; original recording preserved.');await reloadRecords()}catch(e){toast(e.message)}}
-async function importCSV(file){if(!file)return;try{if(file.size>8_000_000)throw Error('CSV exceeds the 8 MB limit.');const csv_text=await file.text();const d=await request('/api/import-csv',{method:'POST',body:JSON.stringify({title:file.name.slice(0,64),csv_text})});if(await loadRecord(d.id))toast('CSV imported as unverified research data.');await reloadRecords()}catch(e){toast('Import error: '+e.message)}finally{$('csvFile').value=''}}
+function safeCSVHeader(line){
+ const result=[];let value='',quoted=false;
+ for(let i=0;i<line.length;i++){
+  const ch=line[i];if(ch==='"'){
+   if(quoted&&line[i+1]==='"'){value+='"';i++;}else quoted=!quoted;
+  }else if(ch===','&&!quoted){result.push(value);value='';}else value+=ch;
+ }
+ if(quoted)throw Error('Unclosed quoted CSV header');result.push(value);return result;
+}
+function csvColumnGuess(header){
+ const h=header.trim().toLowerCase();
+ if(h==='time_s'||h==='time_ms'||h==='time'||h.startsWith('timestamp'))return 'time';
+ if(h.includes('pleth')||h.includes('ppg'))return 'PPG';
+ if(h.includes('abp')||h.includes('pressure'))return 'ABP';
+ if(/^(i|ii|iii|avr|avl|avf|v[1-6]?|ecg.*|lead.*)$/.test(h))return 'ECG';
+ return '';
+}
+function showCSVMapping(file){
+ if(!file)return;
+ selectedCSV=file;
+ if(file.size>8_000_000){toast('CSV exceeds 8 MB; use a shorter export.');return}
+ file.slice(0,8192).text().then(head=>{
+   let first=head.replace(/^\uFEFF/,'').split(/\r?\n/)[0];
+   const columns=safeCSVHeader(first);
+   if(!columns.length||columns.length>60||new Set(columns).size!==columns.length)throw Error('CSV must have unique headers (up to 60)');
+   $('csvMapper').classList.remove('hidden');text('csvName',file.name);
+   const time=$('csvTimeColumn');time.replaceChildren();
+   const body=$('csvChannels');body.replaceChildren();
+   columns.forEach((name,i)=>{
+     const op=el('option','',name);op.value=name;time.append(op);
+     const row=el('label','csv-channel-row');
+     const use=el('input');use.type='checkbox';use.className='channel-use';use.dataset.column=name;
+     const guess=csvColumnGuess(name);use.checked=Boolean(guess&&guess!=='time');
+     const span=el('span','',name);const select=el('select','channel-kind');
+     for(const [kind,unit] of [['ECG','mV'],['PPG','a.u./NU'],['ABP','mmHg']]){const o=el('option','',kind+' ('+unit+')');o.value=kind;select.append(o)}
+     const units=el('select','channel-unit');
+     const syncUnits=()=>{units.replaceChildren();
+       for(const unit of (select.value==='PPG'?['a.u.','NU']:select.value==='ABP'?['mmHg']:['mV'])){
+         const option=el('option','',unit);option.value=unit;units.append(option)}
+       if(select.value==='PPG'&&name.toLowerCase().includes('pleth'))units.value='NU';
+     };
+     select.value=guess&&guess!=='time'?guess:'ECG';select.addEventListener('change',syncUnits);syncUnits();
+     row.append(use,span,select,units);body.append(row);
+   });
+   const timeName=columns.find(c=>csvColumnGuess(c)==='time')||columns[0];time.value=timeName;
+   $('csvTimeUnit').value=timeName.toLowerCase().includes('ms')?'ms':'s';
+   text('csvMapperStatus','Only checked columns will be imported. Unrecognized/identifying columns cannot be accepted.');
+ }).catch(e=>toast('Cannot read CSV header: '+e.message));
+}
+async function importCSV(){
+ if(!selectedCSV)return toast('Choose a CSV file first');
+ const button=$('importCustomCSV');button.disabled=true;
+ try{
+  if(selectedCSV.size>8_000_000)throw Error('CSV exceeds the 8 MB limit');
+  const mappings=[];
+  for(const row of document.querySelectorAll('.csv-channel-row')){
+   if(!row.querySelector('.channel-use').checked)continue;
+   const name=row.querySelector('.channel-use').dataset.column;
+   const kind=row.querySelector('.channel-kind').value;
+   const clean=name.trim().replace(/[^a-zA-Z0-9_+-]/g,'_').slice(0,24);
+   const unit=row.querySelector('.channel-unit').value;
+   mappings.push({column:name,name:clean||kind,kind,unit});
+  }
+  if(mappings.length<1||mappings.length>8)throw Error('Select 1 to 8 signal columns');
+  const rawAlarm=$('csvAlarmTime').value.trim();
+  const csv_text=await selectedCSV.text();
+  const payload={title:selectedCSV.name.slice(0,64),csv_text,
+   time_column:$('csvTimeColumn').value,time_unit:$('csvTimeUnit').value,channel_mapping:mappings,
+   alarm_time_s:rawAlarm===''?null:Number(rawAlarm)};
+  const response=await request('/api/import-csv',{method:'POST',body:JSON.stringify(payload)});
+  $('csvMapper').classList.add('hidden');selectedCSV=null;$('csvFile').value='';
+  await loadRecord(response.id);await reloadRecords();toast('Custom research CSV imported. Source and units are unverified.');
+ }catch(e){text('csvMapperStatus','Import failed: '+e.message);toast('CSV import: '+e.message)}
+ finally{button.disabled=false}
+}
+async function importWFDBFiles(){
+ const hea=$('wfdbHeader').files?.[0],dat=$('wfdbData').files?.[0];
+ if(!hea||!dat)return toast('Choose matching .hea and .dat files');
+ if(hea.size>8192||dat.size>1_600_000)return toast('WFDB files exceed the bounded format-16 import limits');
+ const button=$('importWFDBFiles');button.disabled=true;
+ try{
+  const buffer=new Uint8Array(await dat.arrayBuffer());let raw='';
+  for(let i=0;i<buffer.length;i+=16384)raw+=String.fromCharCode(...buffer.subarray(i,i+16384));
+  const time=$('wfdbAlarmTime').value.trim();
+  const response=await request('/api/import-wfdb-files',{method:'POST',body:JSON.stringify({
+   header_filename:hea.name,header_text:await hea.text(),data_filename:dat.name,data_base64:btoa(raw),
+   alarm_time_s:time===''?null:Number(time)})});
+  await loadRecord(response.id);await reloadRecords();toast('WFDB pair imported with checksums; no expert reference label.');
+ }catch(e){toast('WFDB files: '+e.message)}finally{button.disabled=false}
+}
 async function importWFDB(){const path=$('wfdbPath').value.trim();if(!path)return toast('Enter a relative WFDB record path');
  $('importWFDB').disabled=true;
  try{const d=await request('/api/import-wfdb',{method:'POST',body:JSON.stringify({record_path:path})});if(await loadRecord(d.id))toast('Real WFDB recording imported. Reference label is not AI output.');await reloadRecords()}catch(e){toast('WFDB import: '+e.message)}finally{$('importWFDB').disabled=false}}
-async function refreshWindow(){if(!current||current.metadata.origin!=='wfdb_research')return;
- const win=Number($('windowSeconds').value);const start=Math.min(Number($('windowStart').value),Math.max(0,current.analysis.duration_s-win));
- const id=current.metadata.id, seq=++windowRequestSequence;
- text('windowStartValue',start+' s');try{const r=await request('/api/records/'+encodeURIComponent(id)+'/preview?start_s='+start+'&window_s='+win);
- if(!current||current.metadata.id!==id||seq!==windowRequestSequence)return;
- current.waveforms=r.waveforms;
- const cvs=document.querySelectorAll('.plot canvas');r.waveforms.forEach((w,i)=>{if(cvs[i])draw(cvs[i],w)});}catch(e){toast(e.message)}}
+async function refreshWindow(startOverride=null){
+ if(!current)return;
+ const win=Number($('windowSeconds').value);
+ const maximum=Math.max(0,current.analysis.duration_s-win);
+ const wanted=startOverride===null?Number($('windowStart').value):Number(startOverride);
+ const start=Math.max(0,Math.min(maximum,wanted));
+ const id=current.metadata.id,seq=++windowRequestSequence;
+ text('windowStartValue',clockTime(start));
+ if(!replay.running)text('replayClock',clockTime(start+win/2));
+ try{
+  const r=await request('/api/records/'+encodeURIComponent(id)+'/preview?start_s='+start.toFixed(3)+'&window_s='+win);
+  if(!current||current.metadata.id!==id||seq!==windowRequestSequence)return;
+  current.waveforms=r.waveforms;
+  const cvs=document.querySelectorAll('#plots .plot canvas');
+  r.waveforms.forEach((w,i)=>{if(cvs[i])draw(cvs[i],w)});
+ }catch(e){if(seq===windowRequestSequence)toast('Waveform preview: '+e.message)}
+}
 function downloadReport(){if(!current)return;window.location.href='/api/records/'+encodeURIComponent(current.metadata.id)+'/report'}
 for(const item of document.querySelectorAll('.nav'))item.addEventListener('click',()=>setSection(item.dataset.go));
 for(const item of document.querySelectorAll('[data-demo]'))item.addEventListener('click',()=>createDemo(item.dataset.demo));
-$('injectBtn').addEventListener('click',createFault);$('importWFDB').addEventListener('click',importWFDB);$('windowStart').addEventListener('change',refreshWindow);$('windowSeconds').addEventListener('change',()=>{const win=Number($('windowSeconds').value);$('windowStart').max=Math.max(0,Math.floor(current.analysis.duration_s-win));$('windowStart').value=Math.min(Number($('windowStart').value),Number($('windowStart').max));refreshWindow()});$('csvFile').addEventListener('change',event=>importCSV(event.target.files[0]));$('refreshAudit').addEventListener('click',loadAudit);$('downloadReport').addEventListener('click',downloadReport);$('printReport').addEventListener('click',()=>{if(current)window.open('/api/records/'+encodeURIComponent(current.metadata.id)+'/report.html','_blank','noopener')});
+$('injectBtn').addEventListener('click',createFault);$('importWFDB').addEventListener('click',importWFDB);
+$('importWFDBFiles').addEventListener('click',importWFDBFiles);
+$('csvFile').addEventListener('change',event=>showCSVMapping(event.target.files[0]));
+$('importCustomCSV').addEventListener('click',importCSV);
+$('replayToggle').addEventListener('click',toggleReplay);
+$('windowStart').addEventListener('input',()=>{pauseReplay();replay.at=Number($('windowStart').value);text('windowStartValue',clockTime(replay.at));});
+$('windowStart').addEventListener('change',()=>refreshWindow());
+$('jumpAlarm').addEventListener('click',()=>{const alarm=annotatedAlarm();if(alarm===null)return;
+ pauseReplay();const win=Number($('windowSeconds').value);replay.at=Math.max(0,Math.min(replayLimit(),alarm-win*.75));
+ $('windowStart').value=String(replay.at);refreshWindow();});
+$('windowSeconds').addEventListener('change',()=>{
+ pauseReplay();const max=replayLimit();$('windowStart').max=String(max);
+ replay.at=Math.min(Number($('windowStart').value),max);
+ $('windowStart').value=String(replay.at);refreshWindow();
+});$('refreshAudit').addEventListener('click',loadAudit);$('downloadReport').addEventListener('click',downloadReport);$('printReport').addEventListener('click',()=>{if(current)window.open('/api/records/'+encodeURIComponent(current.metadata.id)+'/report.html','_blank','noopener')});
 $('faultSeverity').addEventListener('input',()=>text('severityValue',$('faultSeverity').value));window.addEventListener('resize',()=>{if(current)current.waveforms.forEach((w,i)=>{const canvases=document.querySelectorAll('.plot canvas');if(canvases[i])draw(canvases[i],w)})});
 reloadRecords();
 
@@ -146,7 +339,7 @@ async function loadResearchModelStatus(){
     researchModelAvailable=Boolean(status.available);
     text('modelState',researchModelAvailable?'Research model loaded':'Not trained');
     text('modelDetail',researchModelAvailable?'Locally trained retrospective model available. Results have no clinical use.':'No trained model is installed. Use scripts/train-vtac-windows.bat after enough valid labelled True and False events exist in official train/validation/test partitions.');
-    $('assessBtn').disabled= !(researchModelAvailable && current && current.metadata.origin==='wfdb_research' && !current.metadata.parent_id);
+    $('assessBtn').disabled= !(researchModelAvailable && current && current.metadata.origin==='wfdb_research' && !current.metadata.parent_id && ['True','False'].includes(current.reference_label));
   }catch(err){
     researchModelAvailable=false;text('modelDetail','Model status unavailable: '+err.message);
   }
@@ -181,7 +374,7 @@ async function showPilotCase(id){
     $('pilotPlots').replaceChildren();
     for(const w of result.waveforms){
       const wrap=el('div','plot'),info=el('div','plot-info');info.append(el('strong','',w.name||w.kind),el('small','',w.unit+' · pre-alarm waveform'));
-      wrap.append(info);const canvas=el('canvas');canvas.setAttribute('role','img');canvas.setAttribute('aria-label',(w.name||w.kind)+' pre-alarm waveform');wrap.append(canvas);$('pilotPlots').append(wrap);draw(canvas,w);
+      wrap.append(info);const canvas=el('canvas');canvas.setAttribute('role','img');canvas.setAttribute('aria-label',(w.name||w.kind)+' pre-alarm waveform');wrap.append(canvas);$('pilotPlots').append(wrap);draw(canvas,w,{hideAlarm:true});
     }
     $('pilotSubmit').disabled=false;
   }catch(err){pilotCase=null;$('pilotSubmit').disabled=true;text('pilotMessage','Unable to load case: '+err.message)}
@@ -221,5 +414,7 @@ $('pilotExport').addEventListener('click',async()=>{
 // Appearance affects presentation only; waveform samples and computed metrics remain unchanged.
 window.addEventListener('waveassure:appearance',()=>{
  if(current){const plots=document.querySelectorAll('#plots .plot canvas');current.waveforms.forEach((w,i)=>{if(plots[i])draw(plots[i],w);});}
- if(pilotSession && pilotCase){const canvases=document.querySelectorAll('#pilotPlots .plot canvas');pilotWaveforms.forEach((w,i)=>{if(canvases[i])draw(canvases[i],w);});}
+ if(pilotSession && pilotCase){const canvases=document.querySelectorAll('#pilotPlots .plot canvas');pilotWaveforms.forEach((w,i)=>{if(canvases[i])draw(canvases[i],w,{hideAlarm:true});});}
 });
+
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseReplay();});

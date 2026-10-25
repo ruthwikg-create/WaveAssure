@@ -1,3 +1,11 @@
+## 0.13.0 — 2026-10-25 (recording replay and custom data)
+
+- Replace static-only waveform review with recorded time navigation, pause/play, replay speed and event jump controls.
+- Stop assigning 300 s to arbitrary waveform recordings; display only labelled VTaC timeline annotations or explicit user-supplied unverified markers.
+- Enable custom CSV time/channel/unit mappings and bounded browser import of WFDB format-16 `.hea`/`.dat` pairs without granting expert labels.
+- Add regression cases for time provenance, checksum rejection, unknown events, altered data, and unverified uploads. No clinical claims added.
+
+
 ## 0.12.1 — 2026-10-25 (Windows fresh-clone setup fix)
 
 - Fix `scripts/test-windows.bat` failing with repeated "The system cannot find the path specified" on a fresh Git clone because `.venv` has not been created yet.
