@@ -1,0 +1,45 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+require('../web/replay-timeline.js');
+require('../web/alarm-event.js');
+const r=globalThis.WaveAssureReplay;
+assert.equal(r.startFor(0,30,360),0);
+assert.equal(r.startFor(10,30,360),0);
+assert.equal(r.startFor(90,30,360),75);
+assert.equal(r.startFor(360,30,360),330);
+assert.equal(r.startFor(0,30,1),0);
+assert.equal(r.startFor(0.4,30,1),0,'short recording should not stop movement');
+assert.equal(r.advance(0,0.25,1,1),0.25);
+assert.equal(r.advance(0.25,0.5,2,1),1);
+assert.equal(r.advance(0,0.25,0.5,2),0.125);
+assert.equal(r.crossedEvent(299.9,300,300),true);
+assert.equal(r.crossedEvent(300,300.1,300),false);
+assert.equal(r.crossedEvent(0,1,null),false);
+assert.equal(r.crossedEvent(0,1,undefined),false);
+const wave={t:[0,0.25,0.5,0.75,1]};
+assert.equal(r.cursorX(wave,0,500),13);
+assert.equal(r.cursorX(wave,1,500),490);
+assert.equal(r.cursorX(wave,0.5,500),251.5);
+assert.equal(r.cursorX(wave,2,500),null);
+const event=globalThis.WaveAssureAlarmEvent;
+const base={metadata:{origin:'wfdb_research',parent_id:null},alarm_time_source:'dataset_annotation',source_reference:'VTaC',reference_label:'False'};
+let explanation=event.explain(base,300);
+assert.match(explanation.status,/false VT alarm/i);
+assert.match(explanation.reason,/does NOT establish a normal heart rhythm/);
+assert.match(event.explain({...base,reference_label:'True'},300).status,/genuine VT/);
+explanation=event.explain({metadata:{origin:'local_csv_unverified'},alarm_time_source:'user_annotation_unverified'},5);
+assert.match(explanation.status,/cause unknown/i);
+assert.match(event.explain(null,null).status,/No recorded alarm timestamp/);
+const app=fs.readFileSync(path.join(__dirname,'../web/app.js'),'utf8');
+const html=fs.readFileSync(path.join(__dirname,'../web/index.html'),'utf8');
+for(const marker of ['replay.playhead','WaveAssureReplay.advance','WaveAssureReplay.startFor','WaveAssureReplay.cursorX',
+   'hoverAlarm(event,canvas','alarmTooltipText()', 'redrawWaveforms()', 'alarmPlaybackStatus']){
+ assert.ok(app.includes(marker),marker+' absent');
+}
+assert.ok(html.includes('id="alarmPlaybackStatus"'));
+assert.ok(html.includes('src="/static/replay-timeline.js"'));
+assert.ok(html.indexOf('/static/replay-timeline.js')<html.indexOf('/static/app.js'));
+assert.equal((html.match(/type="file"/g)||[]).length,1);
+console.log('Retrospective replay and alarm event provenance: 24 unit/contract assertions passed');
