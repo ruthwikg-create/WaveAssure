@@ -139,7 +139,7 @@ function renderAlarm(){
  if(alarm===null){text('alarmDetail','No alarm timestamp is documented for this recording. WaveAssure cannot infer the original buzzer time.');return;}
  const source=current.alarm_time_source==='dataset_annotation'?'Local VTaC label file (not independently authenticated)':
   current.alarm_time_source==='user_annotation_unverified'?'User-entered timestamp (unverified)':'Legacy VTaC dataset reference';
- text('alarmDetail','Alarm marker at '+clockTime(alarm)+' ('+alarm.toFixed(3)+' s) · '+source+'. No original monitor audio was imported.');
+ text('alarmDetail','EVENT '+clockTime(alarm)+' ('+alarm.toFixed(3)+' s) · '+window.WaveAssureAlarmEvent.explain(current,alarm).status+' · '+source+'. Hover or focus the orange event marker for evidence. False VT does NOT prove normal physiology. Original monitor audio unavailable.');
 }
 
 const $ = id => document.getElementById(id);
