@@ -1,5 +1,9 @@
 # WaveAssure
 
+**v0.20 event inspection:** Hover an orange EVENT marker to read the source alarm reference (e.g. **genuine VT = ventricular tachycardia alarm as annotated by VTaC**) and observed unverified waveform values from the hovered channel. Click it to inspect all ECG/PPG/ABP channels within ±2 seconds. The app does **not** automatically diagnose ECG rhythm subtypes or determine clinical heart-rate, SpO₂ or blood-pressure high/low alarms without verified input and medical validation. See [event context and clinical limits](docs/EVENT_SIGNAL_CONTEXT_V020.md).
+
+
+
 **v0.19 — Understand the event marker:** A waveform without alarm-event metadata cannot show when a real monitor buzzed. To practice hovering over an orange line, use **Show test event marker** in Waveform review. The DEMO marker and optional browser-generated beep are not authentic patient or monitor evidence and are never persisted. Hover/focus the marker to read the reason. For source-labelled VTaC records, reference true/false VT alarm annotations are shown separately. See [how alarm markers work](docs/EVENT_HOVER_DEMO_V019.md).
 
 

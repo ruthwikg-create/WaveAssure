@@ -1,3 +1,10 @@
+## v0.20.0 — Per-channel event context without unsupported medical classifications (2026-10-25)
+
+- Clarify genuine/false VTaC ventricular tachycardia **source alarm** reference and the lack of independent ECG morphology classification.
+- Add authenticated-by-existing-local-workbench read-only event-context endpoint: raw samples around the marked time for all supported ECG, PPG and ABP channels; report min/max/mean, sample counts and missingness, not clinical high/low conditions.
+- Show the hovered signal's measured values and add a full per-channel table to Explain alarm. Preserve demo markers as explicitly artificial.
+- Add source-provenance, boundary, anti-forgery, and synthetic endpoint regression tests. No bedside integration or patient-care readiness implied.
+
 ## v0.19.0 — Clearly distinguished demo event markers (2026-10-25)
 
 - When a loaded recording lacks documented alarm data, offer a temporary **Show test event marker** control directly beside replay.

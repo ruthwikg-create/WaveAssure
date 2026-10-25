@@ -8,8 +8,77 @@ let selectedCSV=null;
 let selectedWFDB=null;
 let fileSelectionSequence=0;
 let demoMarker=null;
+let eventContext=null;
+let eventContextRequestSequence=0;
 function hasDemoMarker(){return Boolean(current && demoMarker && demoMarker.id===current.metadata.id && Number.isFinite(demoMarker.time));}
-function explainDisplayedAlarm(){const time=annotatedAlarm();return hasDemoMarker()?window.WaveAssureDemoEvent.explanation(time):window.WaveAssureAlarmEvent.explain(current,time);}
+function explainDisplayedAlarm(){
+ const time=annotatedAlarm();
+ return hasDemoMarker()?window.WaveAssureDemoEvent.explanation(time,current):
+   window.WaveAssureAlarmEvent.explain(current,time);
+}
+function formatResearchNumber(value){
+ return value===null||value===undefined||!Number.isFinite(value)?'N/A':Number(value).toFixed(3);
+}
+function channelObservationText(channel){
+ const unit=channel.unit||'unverified units';
+ const values=channel.valid_samples ?
+   'minimum '+formatResearchNumber(channel.minimum)+', maximum '+formatResearchNumber(channel.maximum)+
+   ', mean '+formatResearchNumber(channel.mean)+' '+unit : 'No finite samples';
+ return channel.kind+' '+channel.channel+' ±2s: '+values+'; '+channel.missing_samples+' missing samples. '+
+   (channel.kind==='ECG'?'ECG subtype not independently classified.':
+    'Clinical low/high and normality not assessed.');
+}
+function renderChannelEvidence(){
+ const container=$('alarmChannelEvidence');
+ if(!container || !current)return;
+ container.replaceChildren();
+ const heading=el('h3','','Signal samples near marker (research only)');
+ container.append(heading);
+ if(!eventContext){
+   container.append(el('p','','No measured event-window summary is available yet. Alarm cause and clinical low/high values cannot be inferred.'));
+   return;
+ }
+ const frame=el('p','', 'Original samples from '+clockTime(eventContext.window_start_s)+' to '+
+   clockTime(eventContext.window_end_s)+'. This interval is NOT a detected abnormality.');
+ container.append(frame);
+ if(eventContext.reference_rhythm_category)container.append(el('p','',
+   'Dataset reference category: '+eventContext.reference_rhythm_category));
+ const table=el('table','evidence-table event-context-table');
+ const head=el('tr');
+ for(const name of ['Channel','Observed min – max (original unit)','Mean','Missing','Clinical interpretation'])head.append(el('th','',name));
+ table.append(head);
+ for(const c of eventContext.channels){
+   const row=el('tr');
+   for(const value of [
+     c.kind+' · '+c.channel,
+     formatResearchNumber(c.minimum)+' – '+formatResearchNumber(c.maximum)+' '+c.unit,
+     formatResearchNumber(c.mean)+' '+c.unit,
+     String(c.missing_samples)+' / '+String(c.total_samples),
+     c.kind==='ECG'?'ECG morphology: not classified':'Normal, low or high: not assessed'
+   ])row.append(el('td','',value));
+   table.append(row);
+ }
+ const wrap=el('div','evidence-table-scroll');wrap.append(table);container.append(wrap);
+ container.append(el('p','',
+   'These are raw waveform amplitudes, not measured heart rate, SpO2 percentage or systolic/diastolic blood pressure. No device alarm thresholds or independent rhythm subtype classifier were provided.'));
+}
+async function loadEventContext(){
+ const requestSequence=++eventContextRequestSequence;
+ eventContext=null;
+ const time=annotatedAlarm();
+ if(time===null||!current)return;
+ const id=current.metadata.id;
+ try{
+   const result=await request('/api/records/'+encodeURIComponent(id)+'/event-context?at_s='+encodeURIComponent(time));
+   if(requestSequence!==eventContextRequestSequence||!current||
+      current.metadata.id!==id||annotatedAlarm()!==time)return;
+   eventContext=result;
+ }catch(error){
+   if(requestSequence!==eventContextRequestSequence)return;
+   eventContext=null;
+ }
+ if(!$('alarmExplanation').classList.contains('hidden'))renderChannelEvidence();
+}
 const clockTime = t => { const v=Math.max(0,Number(t)||0); return String(Math.floor(v/60)).padStart(2,'0')+':'+String(Math.floor(v%60)).padStart(2,'0')+'.'+Math.floor((v%1)*10); };
 function annotatedAlarm(){
  if(!current)return null;
@@ -46,7 +115,7 @@ function toggleDemoMarker(){
  }
  $('alarmExplanation').classList.add('hidden');
  $('explainAlarm').setAttribute('aria-expanded','false');
- renderAlarm();redrawWaveforms();
+ renderAlarm();redrawWaveforms();loadEventContext();
 }
 function replayLimit(){return Math.max(0,(current?.analysis.duration_s||0)-Number($('windowSeconds').value));}
 function pauseReplay(){
@@ -127,6 +196,8 @@ function showAlarmExplanation() {
  ]) {
   const row=el('div','alarm-explanation-row');row.append(el('strong','',label),el('p','',value));detail.append(row);
  }
+ const measured=el('section','event-evidence');measured.id='alarmChannelEvidence';
+ detail.append(measured);renderChannelEvidence();
  detail.classList.remove('hidden');
  $('explainAlarm').setAttribute('aria-expanded','true');
  detail.focus({preventScroll:true});
@@ -145,17 +216,25 @@ function onAlarmCanvasClick(event,canvas,w){
  const local=event.clientX-canvas.getBoundingClientRect().left;
  if(Math.abs(local-x)<=24)showAlarmExplanation();
 }
+let selectedHoverChannel='';
 function alarmTooltipText(){
  const time=annotatedAlarm();
  if(time===null)return '';
  const summary=explainDisplayedAlarm();
+ const channel=eventContext?.channels.find(ch=>ch.channel===selectedHoverChannel);
+ const contextLine=eventContext ?
+   (eventContext.reference_rhythm_category ? 'Source event category: VT. ' : '')+
+   (channel ? channelObservationText(channel) :
+     'Select the event line on a signal to see its channel measurements.') :
+   'Event-window raw samples loading.';
  return clockTime(time)+' ('+time.toFixed(3)+' seconds) · '+summary.status+
-   '. '+summary.reason+' Source: '+summary.source;
+   '. '+summary.reason+' '+contextLine+' Source: '+summary.source;
 }
 function hoverAlarm(event,canvas,w,tooltip){
  const x=alarmMarkerPosition(canvas,w);
  const left=event.clientX-canvas.getBoundingClientRect().left;
  const active=x!==null&&Math.abs(left-x)<=24;
+ if(active)selectedHoverChannel=w.name||w.kind;
  canvas.style.cursor=active?'pointer':'default';
  tooltip.classList.toggle('hidden',!active);
  if(active){
@@ -211,7 +290,7 @@ async function loadRecord(id){
  try{
   const loaded=await request('/api/records/'+encodeURIComponent(id));
   if(sequence!==recordRequestSequence)return false;
-  current=loaded;demoMarker=null;
+  current=loaded;demoMarker=null;eventContext=null;++eventContextRequestSequence;
   const r=current, name=r.metadata.title;
   text('metricRecord',name.length>22?name.substring(0,21)+'…':name);
   text('metricOrigin',r.metadata.parent_id?'Derived fault experiment · not an expert-labelled recording':r.metadata.origin==='synthetic'?'Synthetic educational data':r.metadata.origin==='wfdb_research'?(r.reference_label==='Unlabeled'?'Custom WFDB · no verified expert label':'Local WFDB · dataset label (not AI): '+r.reference_label):'Unverified research recording');
@@ -245,7 +324,7 @@ async function loadRecord(id){
     canvas.addEventListener('mousemove',event=>hoverAlarm(event,canvas,active(),tooltip));
     canvas.addEventListener('mouseleave',()=>tooltip.classList.add('hidden'));
     canvas.addEventListener('focus',()=>{if(annotatedAlarm()!==null){
-       tooltip.textContent=alarmTooltipText();tooltip.style.left='8px';tooltip.classList.remove('hidden');
+       selectedHoverChannel=w.name||w.kind;tooltip.textContent=alarmTooltipText();tooltip.style.left='8px';tooltip.classList.remove('hidden');
     }});
     canvas.addEventListener('blur',()=>tooltip.classList.add('hidden'));
     canvas.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&annotatedAlarm()!==null){
@@ -264,7 +343,7 @@ async function loadRecord(id){
   replay.at=start;replay.playhead=start;replay.lastRequestedStart=start;
   text('windowStartValue',clockTime(start));text('replayClock',clockTime(replay.playhead));
   text('alarmPlaybackStatus','Playback has not reached any annotation. Optional preview tone is off and never represents original monitor audio.');
-  renderAlarm();
+  renderAlarm();loadEventContext();
   showQuality(r.analysis.quality_checks, r.metadata.origin);
   loadEvidence(id);
   refreshWindow(start);

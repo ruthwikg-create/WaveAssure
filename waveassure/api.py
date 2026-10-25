@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from .wfdb_input import import_local_wfdb, import_uploaded_wfdb, configured_root
 from .signals import analyze, demo_record, inject_fault, preview
 from .evidence import create_evidence
+from .event_context import describe_at
 from .report_html import report_html
 from .storage import save, get, list_records, verify, audit_rows, StorageIntegrityError
 from .csv_input import parse_csv
@@ -190,6 +191,23 @@ def record_preview(record_id:str, start_s:float=Query(default=0,ge=0,le=600), wi
     except ValueError as exc: raise HTTPException(409, 'Stored record integrity check failed') from exc
     if not source: raise HTTPException(404,'Record not found')
     return {'waveforms':preview(source['record'], start_s=start_s, window_s=window_s)}
+
+@app.get('/api/records/{record_id}/event-context')
+def event_context(record_id: str, at_s: float = Query(ge=0, le=600)):
+    """Original sample values around an annotated (or merely selected) time.
+
+    The supplied time does not manufacture an alarm. No clinical thresholds.
+    """
+    try: source = get(record_id)
+    except ValueError as exc:
+        raise HTTPException(409, 'Stored record integrity check failed') from exc
+    if not source:
+        raise HTTPException(404, 'Record not found')
+    try:
+        return describe_at(source['record'], source['metadata'], at_s)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
 
 @app.get('/api/records/{record_id}')
 def get_record(record_id:str):
