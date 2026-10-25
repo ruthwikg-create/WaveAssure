@@ -12,7 +12,7 @@
   <div class="side-bottom"><div class="status-dot"></div><div><strong>Local research mode</strong><small>Not for clinical use</small></div></div>
 </aside>
 <main>
-  <header class="topbar"><div class="breadcrumbs">Workspace / <span id="crumb">Workbench</span></div><div class="topright"><span class="version">v0.15.0</span><div class="appearance-controls" role="group" aria-label="Appearance preferences"><label for="themeSelect">Theme</label><select class="appearance-select" id="themeSelect" aria-label="Colour theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select><button type="button" id="motionToggle" class="motion-toggle" aria-pressed="true"><span data-motion-label>UI effects on</span></button></div><span class="top-status"><i></i> Local only</span></div></header>
+  <header class="topbar"><div class="breadcrumbs">Workspace / <span id="crumb">Workbench</span></div><div class="topright"><span class="version">v0.17.0</span><div class="appearance-controls" role="group" aria-label="Appearance preferences"><label for="themeSelect">Theme</label><select class="appearance-select" id="themeSelect" aria-label="Colour theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select><button type="button" id="motionToggle" class="motion-toggle" aria-pressed="true"><span data-motion-label>UI effects on</span></button></div><span class="top-status"><i></i> Local only</span></div></header>
   <div class="warning" role="note"><span class="warn-icon">!</span><p><strong>Research software — not a medical device.</strong> Synthetic demonstrations and real research-data import are separately labelled. No live patient monitoring, diagnosis, alarm suppression or clinical decision-making.</p></div>
   <section id="section-workbench" class="page">
     <div class="page-head"><div><div class="eyebrow">Signal analysis</div><h1>Signal workbench</h1><p>Inspect recordings, test signal integrity, and export engineering evidence.</p></div><button class="btn-secondary" id="downloadReport" disabled>↓ Export evidence JSON</button><button class="btn-secondary" id="printReport" disabled>View printable evidence</button></div>
@@ -25,7 +25,7 @@
       <div class="panel controls"><div class="panel-header"><div><h2>Data source</h2><p>Start with a deterministic educational waveform</p></div><span class="pill">SYNTHETIC</span></div><div class="demo-choices"><button class="choice" data-demo="baseline"><span class="choice-symbol">∿</span><span><strong>Baseline</strong><small>72 BPM synthetic example</small></span><span class="chev">›</span></button><button class="choice" data-demo="tachy_simulation"><span class="choice-symbol">⌁</span><span><strong>Fast rhythm</strong><small>145 BPM synthetic example</small></span><span class="chev">›</span></button><button class="choice" data-demo="artifact"><span class="choice-symbol">≋</span><span><strong>Signal artifact</strong><small>50 Hz interference example</small></span><span class="chev">›</span></button></div><div class="unified-upload" id="datasetImport">
         <label class="upload-title" for="datasetFiles">Upload research recording</label>
         <input id="datasetFiles" type="file" accept=".csv,text/csv,.hea,.dat" multiple aria-describedby="datasetHelp datasetSelectionStatus">
-        <p id="datasetHelp" class="upload-help">Choose <strong>one CSV</strong>, or select a matching <strong>.hea and .dat together</strong> (hold Ctrl to select both). Files stay on your local WaveAssure server; use de-identified research data only.</p>
+        <p id="datasetHelp" class="upload-help">Extract ZIP archives first. Choose <strong>one CSV</strong>, or select a matching <strong>.hea and .dat together</strong> (hold Ctrl to select both). Files stay on your local WaveAssure server; use de-identified research data only.</p>
         <p id="datasetSelectionStatus" class="upload-status" role="status" aria-live="polite">No recording selected.</p>
         <div class="dataset-mapper hidden" id="csvMapper"><strong id="csvName">Selected CSV</strong><p>Confirm the time column, signal columns and units before importing. Imported values are unverified.</p><p id="csvFormatAdvice" class="upload-help" role="status" aria-live="polite">Only timestamped waveform samples are supported here. Patient summary and alert tables are not ECG waveforms.</p>
           <div class="mapping-heading"><label>Time column <select id="csvTimeColumn"></select></label><label>Time unit <select id="csvTimeUnit"><option value="s">Seconds</option><option value="ms">Milliseconds</option></select></label></div>
@@ -33,6 +33,26 @@
           <label class="optional-time" for="csvAlarmTime">Alarm timestamp in seconds (optional, user-supplied)</label><input id="csvAlarmTime" type="number" step="0.001" min="0" max="600" placeholder="Unknown — leave blank">
           <button id="importCustomCSV" class="btn-secondary" type="button">Import selected CSV</button><p class="mapping-error" id="csvMapperStatus" aria-live="polite"></p>
         </div>
+        <section id="ecgMatrixPanel" class="dataset-mapper ecg-matrix-panel hidden" aria-labelledby="ecgMatrixTitle">
+          <h3 id="ecgMatrixTitle">ECG segment preview · wide CSV</h3>
+          <p id="ecgMatrixDetails" role="status">Numeric row-wise ECG segment candidate.</p>
+          <p>Each CSV row is treated as one independent ordered sample segment, not a continuous recording. No sample rate, ECG millivolts, diagnostic class, or alarm time is inferred. Nothing is sent to the WaveAssure API in this preview.</p>
+          <label class="ecg-matrix-ack"><input type="checkbox" id="ecgMatrixConfirm"> I confirm rows represent ordered, de-identified ECG sample segments, not a patient table.</label>
+          <label>First row layout
+            <select id="ecgMatrixHeader"><option value="no">First row contains ECG samples (no header)</option><option value="yes">First row contains column headers</option></select>
+          </label>
+          <label class="ecg-matrix-ack"><input type="checkbox" id="ecgMatrixLabel"> Exclude final class/label column from ECG samples (verify against dataset documentation)</label>
+          <label>Segment row number (starting at 1)
+            <input id="ecgMatrixRow" type="number" min="1" step="1" value="1">
+          </label>
+          <button type="button" id="ecgMatrixPreview" class="btn-secondary" disabled>Preview selected ECG segment</button>
+          <p id="ecgMatrixStatus" role="status" aria-live="polite"></p>
+          <div class="ecg-matrix-chart hidden" id="ecgMatrixChart">
+            <div class="ecg-matrix-heading"><strong id="ecgMatrixPlotTitle">ECG segment</strong><span>Sample index · amplitudes in original unspecified units</span></div>
+            <canvas id="ecgMatrixCanvas" height="180" role="img" aria-label="Selected ECG segment amplitudes plotted against sample index"></canvas>
+            <p id="ecgMatrixStats"></p>
+          </div>
+        </section>
         <div class="wfdb-pair hidden" id="wfdbPairOptions">
           <strong id="wfdbPairSummary">Matched WFDB recording</strong>
           <p>WaveAssure currently supports a restricted WFDB format-16 pair, not every WFDB variant. Imported waveform data has no verified expert label.</p>
@@ -76,5 +96,5 @@
 </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/static/alarm-event.js"></script><script src="/static/dataset-upload.js"></script><script src="/static/app.js"></script>
+<script src="/static/alarm-event.js"></script><script src="/static/dataset-upload.js"></script><script src="/static/ecg-matrix.js"></script><script src="/static/ecg-matrix-ui.js"></script><script src="/static/app.js"></script>
 </body></html>
