@@ -122,7 +122,8 @@ def inject_fault(original: RecordCreate, fault: FaultRequest) -> RecordCreate:
                         sample_rate_hz=original.sample_rate_hz, channels=channels,
                         origin=original.origin,
                         source_reference=original.source_reference + " | DERIVED FAULT EXPERIMENT: source annotation does not transfer",
-                        reference_label="Unlabeled")
+                        reference_label="Unlabeled",
+                        alarm_time_s=None, alarm_time_source=None)
 
 
 def preview(record: RecordCreate, max_points: int = 1400, start_s: float = 0, window_s: float | None = None) -> list[dict]:

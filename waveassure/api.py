@@ -1,6 +1,8 @@
 """Run with: python -m uvicorn waveassure.api:app --host 127.0.0.1 --port 8000"""
 from __future__ import annotations
 from pathlib import Path
+import base64
+import binascii
 import ipaddress
 import os
 import secrets
@@ -12,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from . import __version__
 from .schemas import RecordCreate, FaultRequest, CSVImport
 from pydantic import BaseModel, Field
-from .wfdb_input import import_local_wfdb, configured_root
+from .wfdb_input import import_local_wfdb, import_uploaded_wfdb, configured_root
 from .signals import analyze, demo_record, inject_fault, preview
 from .evidence import create_evidence
 from .report_html import report_html
@@ -138,7 +140,7 @@ def create_record(payload:RecordCreate):
     if payload.origin!='synthetic':
         raise HTTPException(400,'Use dedicated controlled import workflow for non-synthetic data')
     # Never allow caller-supplied expert ground-truth labels or source lineage on synthetic records.
-    cleaned = payload.model_copy(update={'reference_label': 'Unlabeled', 'source_reference': 'User-provided synthetic research data (unverified)'})
+    cleaned = payload.model_copy(update={'reference_label': 'Unlabeled', 'source_reference': 'User-provided synthetic research data (unverified)', 'alarm_time_s': None, 'alarm_time_source': None})
     return {'id':save(cleaned)}
 
 @app.post('/api/import-csv',status_code=201)
@@ -164,8 +166,26 @@ def import_wfdb(payload:WFDBImportRequest):
     return {'id':save(record),'origin':'wfdb_research','reference_label':record.reference_label,
             'note':'The reference label is NOT an AI prediction.'}
 
+class WFDBFileImport(BaseModel):
+    header_filename: str = Field(min_length=5, max_length=96)
+    header_text: str = Field(min_length=1, max_length=8192)
+    data_filename: str = Field(min_length=5, max_length=96)
+    data_base64: str = Field(min_length=4, max_length=4_000_000)
+    alarm_time_s: float | None = Field(default=None, ge=0, le=600)
+
+@app.post('/api/import-wfdb-files', status_code=201)
+def import_wfdb_files(payload: WFDBFileImport):
+    try:
+        binary = base64.b64decode(payload.data_base64, validate=True)
+        record = import_uploaded_wfdb(payload.header_filename, payload.header_text,
+                                      payload.data_filename, binary, payload.alarm_time_s)
+    except (ValueError, UnicodeError, binascii.Error) as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return {'id': save(record), 'origin': 'wfdb_research', 'reference_label': 'Unlabeled',
+            'note': 'Local user-selected WFDB pair; no expert label or clinical provenance verified.'}
+
 @app.get('/api/records/{record_id}/preview')
-def record_preview(record_id:str, start_s:float=Query(default=0,ge=0,le=600), window_s:float=Query(default=30,ge=2,le=600)):
+def record_preview(record_id:str, start_s:float=Query(default=0,ge=0,le=600), window_s:float=Query(default=30,ge=0.25,le=600)):
     try: source=get(record_id)
     except ValueError as exc: raise HTTPException(409, 'Stored record integrity check failed') from exc
     if not source: raise HTTPException(404,'Record not found')
@@ -177,11 +197,17 @@ def get_record(record_id:str):
     except ValueError as exc:raise HTTPException(409,str(exc)) from exc
     if not result:raise HTTPException(404,'Record not found')
     record=result['record']
+    duration = len(record.channels[0].samples) / record.sample_rate_hz
+    legacy_vtac = record.origin == 'wfdb_research' and record.reference_label in {'True','False'} and 'VTaC' in record.source_reference and duration >= 300
+    event_t = record.alarm_time_s if record.alarm_time_s is not None else (300 if legacy_vtac else None)
+    initial_win = 30 if duration >= 30 else (10 if duration >= 10 else (5 if duration >= 5 else (2 if duration >= 2 else 1)))
+    first_s = min(max(0,duration-initial_win), max(0,event_t-20)) if event_t is not None else 0
     return {'metadata':result['metadata'],'analysis':analyze(record),
-            'waveforms':preview(record,start_s=max(0,min(285, len(record.channels[0].samples)/record.sample_rate_hz-30)) if record.origin=='wfdb_research' else 0, window_s=30 if record.origin=='wfdb_research' else None),
+            'waveforms':preview(record,start_s=first_s, window_s=initial_win),
             'reference_label':record.reference_label,
             'sampling_hz':record.sample_rate_hz,'source_reference':record.source_reference,
-            'full_sample_count':len(record.channels[0].samples)}
+            'full_sample_count':len(record.channels[0].samples),
+            'alarm_time_s':record.alarm_time_s, 'alarm_time_source':record.alarm_time_source}
 
 @app.post('/api/records/{record_id}/fault',status_code=201)
 def apply_fault(record_id:str, fault:FaultRequest):
@@ -244,6 +270,8 @@ def research_assessment(record_id:str):
     record=result['record']
     if record.origin!='wfdb_research' or result['metadata']['parent_id'] is not None:
         raise HTTPException(422,'Only original imported research WFDB recordings are eligible; not synthetic, CSV, or fault-injected signals.')
+    if record.reference_label not in {'True','False'} or not (record.alarm_time_source == 'dataset_annotation' or ('VTaC' in record.source_reference and record.alarm_time_s is None)):
+        raise HTTPException(422,'Only dataset-annotated VTaC recordings are supported by this retrospective research model; custom WFDB uploads have no validated reference label.')
     try:
         features=features_from_record(record)
         output=assess(model,features,enforce_signal_quality=True)

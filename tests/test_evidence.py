@@ -53,6 +53,7 @@ def test_real_six_minute_event_window_edges():
     fs=100
     samples=[0.0]* (270*fs) + [1.0]*(30*fs)+ [2.0]*(30*fs)+[3.0]*(30*fs)
     r=RecordCreate(title='record',sample_rate_hz=fs,origin='wfdb_research',reference_label='True',
+                   source_reference='VTaC reference fixture',
                    channels=[Channel(kind='ECG',name='II',unit='mV',samples=samples)])
     report=create_evidence(r,meta('wfdb_research'),{'ok':True})
     pre=report['descriptive_measurements']['pre_alarm_30s']

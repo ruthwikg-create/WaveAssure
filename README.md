@@ -1,5 +1,5 @@
 # WaveAssure
-### Physiological Signal Assurance Workbench · Interface Craft Research v0.12.0
+### Physiological Signal Assurance Workbench · Recorded Replay & Custom Import Research v0.13.0
 
 > **RESEARCH / EDUCATION ONLY. NOT A MEDICAL DEVICE. NOT FOR PATIENT CARE, DIAGNOSIS, ALARM CONTROL, OR CLINICAL MONITORING.**
 
@@ -7,11 +7,16 @@ WaveAssure is an offline-first, full-stack biomedical research project. It loads
 
 See [interface design decisions](docs/INTERFACE_CRAFT.md), [appearance controls](docs/APPEARANCE.md), and [v0.12 verification evidence](reports/VERIFICATION_V0.12.md).
 
+**v0.13.0 — Recorded-time waveform playback and user-mapped custom imports (research only):**
+- Recorded waveform replay (pause, speed, window selection) and source-specific alarm timestamp markers; optional simulated tone is **not original monitor audio**.
+- Guided CSV mapping for user-selected columns/units, and local browser upload for a restricted WFDB format-16 header/data pair. User annotations remain unverified and custom data never gain expert ground truth.
+- See `docs/REPLAY_AND_CUSTOM_IMPORT.md` for supported inputs, safeguards and limitations.
+
 **v0.12.0 — Intentional engineering interface (NOT clinical validation):**
-- Removed glowing surfaces, sweeping highlights, moving navigation, and oversized decorative effects.
-- Added a readable layout-and-typography layer for workbench/reviewer pages and accessible mobile navigation names.
-- Appearance controls remain; motion defaults off for new browser sessions and keeps only brief interaction feedback when enabled.
-- Research warnings, signal samples, algorithms and unmet medical-device release gates are unchanged. Offline layout and in-process workflow checks are described in the v0.12 verification note.
+- Replaced ambient gradients, moving navigation, luminous cards and showy animation with plain borders, measured spacing, restrained status colors and clear data typography.
+- Compact mobile navigation now has accessible names rather than cut-off words; both operating themes and standalone reviewer page share one documented local CSS craft layer.
+- Default decorative motion is off for new browser sessions; users may re-enable limited 140 ms interaction transitions. Operating-system reduced-motion preference still takes precedence.
+- Preserved original recording-source distinctions, safety warnings, waveform data and all clinical/regulatory release blocks. Three additional presentation tests bring the local synthetic-fixture suite to 91 passing tests; in-process browser-workflow and offline layout checks were performed separately.
 
 **v0.11.0 — Accessible appearance and decorative motion (NOT clinical validation):**
 - Light, Dark and System colour themes across the engineering workbench and dedicated offline reviewer page, with browser-local preference storage.

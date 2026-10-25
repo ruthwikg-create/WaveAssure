@@ -1,0 +1,35 @@
+/* WaveAssure 0.13: controls for historical playback and local research imports.
+   Shared theme tokens, no animated physiological data or medical alarm behavior. */
+.dataset-mapper {padding:16px 18px;border-top:1px solid var(--line);display:grid;gap:12px}
+.dataset-mapper p,.dataset-mapper .mapping-error {font-size:12px;line-height:1.55;color:var(--muted);margin:0}
+.mapping-heading {display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.dataset-mapper label {font-size:12px;color:var(--muted);display:grid;gap:6px;min-width:0}
+.dataset-mapper input:not([type=checkbox]),.dataset-mapper select,.wfdb-pair input {
+  display:block;width:100%;min-width:0;max-width:100%;border:1px solid var(--line);
+  background:var(--panel2);color:var(--text);padding:9px 10px;border-radius:6px;
+}
+.csv-channels {display:grid;gap:5px;max-height:270px;overflow:auto;scrollbar-width:thin}
+.csv-channel-row {display:grid!important;grid-template-columns:20px minmax(0,1fr) 140px 70px;align-items:center;gap:8px;
+  border:1px solid var(--line);padding:8px;border-radius:6px}
+.csv-channel-row span {overflow-wrap:anywhere;color:var(--text);font-size:12px}
+.csv-channel-row .channel-use {width:16px;height:16px;accent-color:var(--mint)}
+.csv-channel-row select {font-size:12px}
+.dataset-mapper .optional-time {display:block;font-size:12px}
+.dataset-mapper button {justify-self:start}
+.wfdb-pair {display:grid;gap:8px;padding:14px 0 2px;border-top:1px solid var(--line);margin-top:10px}
+.wfdb-pair input[type=file] {font-size:12px;cursor:pointer;padding:9px}
+.wfdb-pair label {font-size:12px;font-weight:600;letter-spacing:normal;color:var(--muted)}
+.replay-controls {display:flex;align-items:center;flex-wrap:wrap;width:100%;gap:10px}
+.replay-controls button {white-space:normal;padding:10px 12px;min-height:40px}
+.replay-controls label {font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.replay-controls output {margin-left:auto;font-family:var(--mono,Consolas,monospace);font-variant-numeric:tabular-nums;font-size:15px;font-weight:650;color:var(--text)}
+.window-tools .alarm-detail {width:100%;padding:10px 13px;border:1px solid var(--line);border-left:3px solid var(--orange);
+  border-radius:5px;background:var(--panel2);font-size:12px;color:var(--text);line-height:1.5}
+.window-tools .tone-choice {width:100%;display:flex;align-items:center;gap:9px;letter-spacing:normal;text-transform:none;
+  line-height:1.5;font-size:12px;font-weight:500;color:var(--muted)}
+.window-tools .tone-choice input {width:17px;height:17px;accent-color:var(--mint)}
+.window-tools input[type=range] {accent-color:var(--mint)}
+.window-tools select {background:var(--panel2);color:var(--text);border-color:var(--line)}
+:where(.dataset-mapper,.wfdb-pair,.replay-controls) :is(button,input,select):focus-visible {outline:2px solid var(--mint);outline-offset:2px}
+@media(max-width:600px){.mapping-heading{grid-template-columns:1fr}.replay-controls output{margin-left:0}.csv-channel-row{grid-template-columns:18px minmax(0,1fr);}.csv-channel-row select{grid-column:2;width:100%}.dataset-mapper button{width:100%}}
+@media(prefers-reduced-motion: reduce){.window-tools *, .dataset-mapper *{transition:none!important}}

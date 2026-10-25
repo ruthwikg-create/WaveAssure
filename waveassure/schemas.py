@@ -31,6 +31,9 @@ class RecordCreate(BaseModel):
     origin: Literal["synthetic", "local_csv_unverified", "wfdb_research"]
     source_reference: str = Field(default="", max_length=240)
     reference_label: Literal["True", "False", "Unlabeled"] = "Unlabeled"
+    # Time in seconds relative to recording start. Never inferred from waveform shape.
+    alarm_time_s: float | None = Field(default=None, ge=0, le=600)
+    alarm_time_source: Literal['dataset_annotation', 'user_annotation_unverified'] | None = None
 
     @model_validator(mode="after")
     def consistent(self):
@@ -38,7 +41,12 @@ class RecordCreate(BaseModel):
         names = [c.name for c in self.channels]
         if len(lengths) != 1 or len(names) != len(set(names)):
             raise ValueError("All channels must have same length and unique name")
-        if len(self.channels[0].samples)/self.sample_rate_hz > 600:
+        duration = len(self.channels[0].samples) / self.sample_rate_hz
+        if (self.alarm_time_s is None) != (self.alarm_time_source is None):
+            raise ValueError("An alarm time requires an annotation source")
+        if self.alarm_time_s is not None and self.alarm_time_s > duration:
+            raise ValueError("Alarm time is outside the recording")
+        if duration > 600:
             raise ValueError("Maximum recording duration is 600 seconds")
         return self
 
@@ -47,6 +55,16 @@ class FaultRequest(BaseModel):
     target: str = Field(min_length=1, max_length=24)
     severity: float = Field(default=0.5, ge=0.1, le=1.0)
 
+class CSVChannelMap(BaseModel):
+    column: str = Field(min_length=1, max_length=128)
+    name: str = Field(min_length=1, max_length=24)
+    kind: Literal['ECG', 'PPG', 'ABP']
+    unit: str
+
 class CSVImport(BaseModel):
     title: str = Field(min_length=1, max_length=64)
     csv_text: str = Field(min_length=1, max_length=8_000_000)
+    time_column: str = 'time_s'
+    time_unit: Literal['s', 'ms'] = 's'
+    channel_mapping: list[CSVChannelMap] | None = None
+    alarm_time_s: float | None = Field(default=None, ge=0, le=600)
