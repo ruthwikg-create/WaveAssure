@@ -3,7 +3,7 @@ let current = null;
 let researchModelAvailable = false;
 let recordRequestSequence = 0;
 let windowRequestSequence = 0;
-const replay = {running:false, frame:0, at:0, playhead:0, lastMs:0, lastFetchMs:0, lastDrawMs:0, pending:false};
+const replay = {running:false, frame:0, at:0, playhead:0, lastMs:0, lastFetchMs:0, lastDrawMs:0, lastRequestedStart:null, pending:false};
 let selectedCSV=null;
 let selectedWFDB=null;
 let fileSelectionSequence=0;
@@ -59,8 +59,9 @@ function replayStep(now){
  $('windowStart').value=String(windowStart);
  text('windowStartValue',clockTime(windowStart));text('replayClock',clockTime(replay.playhead));
  if(now-replay.lastDrawMs>=32){replay.lastDrawMs=now;redrawWaveforms();}
- if(!replay.pending && now-replay.lastFetchMs>=180){
-   replay.lastFetchMs=now;replay.pending=true;
+ if(!replay.pending && now-replay.lastFetchMs>=180 &&
+     (replay.lastRequestedStart===null||Math.abs(replay.lastRequestedStart-windowStart)>=0.1)){
+   replay.lastFetchMs=now;replay.lastRequestedStart=windowStart;replay.pending=true;
    refreshWindow(windowStart).finally(()=>{replay.pending=false});
  }
  if(replay.playhead>=duration){pauseReplay();return;}
@@ -218,7 +219,7 @@ async function loadRecord(id){
   const alarm=annotatedAlarm();
   const start=(alarm===null?0:Math.max(0,Math.min(max,alarm-20)));
   $('windowStart').max=String(max); $('windowStart').value=String(start);
-  replay.at=start;replay.playhead=start;
+  replay.at=start;replay.playhead=start;replay.lastRequestedStart=start;
   text('windowStartValue',clockTime(start));text('replayClock',clockTime(replay.playhead));
   text('alarmPlaybackStatus','Playback has not reached any annotation. Optional preview tone is off and never represents original monitor audio.');
   renderAlarm();
@@ -489,6 +490,7 @@ async function refreshWindow(startOverride=null){
  const maximum=Math.max(0,current.analysis.duration_s-win);
  const wanted=startOverride===null?Number($('windowStart').value):Number(startOverride);
  const start=Math.max(0,Math.min(maximum,wanted));
+ replay.lastRequestedStart=start;
  const id=current.metadata.id,seq=++windowRequestSequence;
  text('windowStartValue',clockTime(start));
  if(!replay.running)text('replayClock',clockTime(replay.playhead));
