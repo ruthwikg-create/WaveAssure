@@ -24,7 +24,7 @@ function channelObservationText(channel){
  const values=channel.valid_samples ?
    'minimum '+formatResearchNumber(channel.minimum)+', maximum '+formatResearchNumber(channel.maximum)+
    ', mean '+formatResearchNumber(channel.mean)+' '+unit : 'No finite samples';
- return channel.kind+' '+channel.channel+': '+values+'; '+channel.missing_samples+' missing samples. '+
+ return channel.kind+' '+channel.channel+' ±2s: '+values+'; '+channel.missing_samples+' missing samples. '+
    (channel.kind==='ECG'?'ECG subtype not independently classified.':
     'Clinical low/high and normality not assessed.');
 }
@@ -221,10 +221,12 @@ function alarmTooltipText(){
  const time=annotatedAlarm();
  if(time===null)return '';
  const summary=explainDisplayedAlarm();
+ const channel=eventContext?.channels.find(ch=>ch.channel===selectedHoverChannel);
  const contextLine=eventContext ?
-   (eventContext.reference_rhythm_category ? 'Source event: VT alarm. ' : '')+
-   (eventContext.channels.find(ch=>ch.channel===selectedHoverChannel)?.technical_observation||'') :
-   'Detailed channel measurements loading.';
+   (eventContext.reference_rhythm_category ? 'Source event category: VT. ' : '')+
+   (channel ? channelObservationText(channel) :
+     'Select the event line on a signal to see its channel measurements.') :
+   'Event-window raw samples loading.';
  return clockTime(time)+' ('+time.toFixed(3)+' seconds) · '+summary.status+
    '. '+summary.reason+' '+contextLine+' Source: '+summary.source;
 }
