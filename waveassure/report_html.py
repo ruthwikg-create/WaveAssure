@@ -177,7 +177,7 @@ def report_html(report: dict) -> str:
     <p class="hash">Data SHA-256: <code>{safe(record['payload_sha256'])}</code></p>
     <p class="subtle">Source: {safe(record['source_reference'])}</p>
   </section>
-  <footer class="report-footer">
+  <footer class="report-footer critical">
     <strong>No medical decision provided.</strong> Research evidence only; not a clinical diagnosis, validated alarm assessment, or patient-care report.
   </footer>
 </main></body></html>'''
