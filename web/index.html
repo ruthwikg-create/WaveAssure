@@ -27,6 +27,13 @@
         <input id="datasetFiles" type="file" accept=".csv,text/csv,.hea,.dat" multiple aria-describedby="datasetHelp datasetSelectionStatus">
         <p id="datasetHelp" class="upload-help">Extract ZIP archives first. Choose <strong>one CSV</strong>, or select a matching <strong>.hea and .dat together</strong> (hold Ctrl to select both). Files stay on your local WaveAssure server; use de-identified research data only.</p>
         <p id="datasetSelectionStatus" class="upload-status" role="status" aria-live="polite">No recording selected.</p>
+        <details class="dataset-format-guide" id="datasetFormatGuide">
+          <summary>Which dataset can I use? CSV, WFDB, ECG beat matrix</summary>
+          <p><strong>Full waveform review:</strong> use a de-identified time-series CSV with <code>time_s,ECG_mV</code> (at least 100 equally spaced samples, 50–1000 Hz, maximum 600 seconds) or a matching WFDB format-16 <code>.hea</code> and <code>.dat</code> pair. Confirm actual signal units.</p>
+          <p><strong>ECG beat/segment datasets:</strong> wide numeric CSV files (about 100–512 columns) open an independent segment preview, not a continuous monitor timeline. Class/label columns are not ECG samples. No clinical alarm timing can be inferred from these files.</p>
+          <p><strong>Patient alert tables:</strong> columns like Patient Number, Heart Rate Alert or Blood Pressure Alert are not waveform samples and cannot be uploaded into Waveform review. CSVs with patient identifiers are refused.</p>
+          <p>Extract ZIP archives first. To generate a safe, compatible synthetic test CSV, run <code>py -3 scripts/generate-research-waveform-csv.py</code> from the project root, then select the resulting <code>waveassure-demo-waveforms.csv</code>. It contains no real alarms.</p>
+        </details>
         <div class="dataset-mapper hidden" id="csvMapper"><strong id="csvName">Selected CSV</strong><p>Confirm the time column, signal columns and units before importing. Imported values are unverified.</p><p id="csvFormatAdvice" class="upload-help" role="status" aria-live="polite">Only timestamped waveform samples are supported here. Patient summary and alert tables are not ECG waveforms.</p>
           <div class="mapping-heading"><label>Time column <select id="csvTimeColumn"></select></label><label>Time unit <select id="csvTimeUnit"><option value="s">Seconds</option><option value="ms">Milliseconds</option></select></label></div>
           <div id="csvChannels" class="csv-channels"></div>
