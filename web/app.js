@@ -259,7 +259,7 @@ function csvFieldType(header){
  if(CSV_IDENTIFIER_TOKENS.some(token=>h.includes(token)))return 'identifier';
  if(CSV_SCALAR_FIELDS.has(h)||h.split('_').some(token=>CSV_EVENT_TOKENS.has(token)))return 'summary';
  if(['time_s','time_ms','time','elapsed_s','elapsed_ms','elapsed_time','timestamp_s',
-     'timestamp_ms','sample_time','seconds','milliseconds'].includes(h))return 'time';
+     'timestamp_ms','timestamp','sample_time','seconds','milliseconds'].includes(h))return 'time';
  if(h.includes('pleth')||h.includes('ppg'))return 'PPG';
  if(h==='abp'||h.startsWith('abp_')||h==='arterial_pressure')return 'ABP';
  if(/^(i|ii|iii|avr|avl|avf|v[1-6]?|ecg.*|lead.*)$/.test(h))return 'ECG';
@@ -310,7 +310,7 @@ function showCSVMapping(file, sequence){
    const updateReady=()=>{
      const checked=Array.from(body.querySelectorAll('.channel-use')).some(box=>box.checked);
      $('importCustomCSV').disabled=Boolean(identifiers.length)||!time.value||!checked;
-     text('csvMapperStatus',warning+(!time.value?' No elapsed-time column was recognized; select one explicitly if present.':''));
+     text('csvFormatAdvice',warning+(!time.value?' No elapsed-time column was recognized; select one explicitly if present.':''));
    };
    time.addEventListener('change',updateReady);body.addEventListener('change',updateReady);
    updateReady();
