@@ -1,3 +1,10 @@
+## v0.18.0 — Recorded replay, event evidence and dataset guide (2026-10-25)
+
+- Replace ineffective short-recording replay window motion with a visible moving recorded-time cursor and source-independent playback clock; avoid re-fetching unchanged windows.
+- Display annotated event time and evidence-backed provenance in the Waveform review panel; add on-hover, focus and keyboard-accessible event explanations. The optional preview tone is browser-generated, not original monitor audio.
+- Support display-only sample-index sweep for wide ECG matrices; no unverified units or rates assigned.
+- Include in-app dataset-format guidance, a zero-PHI synthetic CSV generator and regression scenarios. Research only; clinical release remains blocked.
+
 ## v0.17.0 — Local ECG beat matrix preview (2026-10-25)
 
 - Keep one research upload input; detect wide numeric CSVs as possible row-wise ECG segment datasets.
