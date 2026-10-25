@@ -9,7 +9,7 @@ const rec=(lab,timeSource,origin='wfdb_research')=>({metadata:{origin,parent_id:
 let value=src(rec('True','dataset_annotation'),300);
 assert.match(value.status,/genuine VT/i);
 assert.match(value.reason,/ventricular tachycardia/);
-assert.match(value.reason,/NOT an independent WaveAssure diagnosis/);
+assert.match(value.reason,/NOT a WaveAssure prediction/);
 value=src(rec('False','dataset_annotation'),300);
 assert.match(value.status,/false VT alarm/);
 assert.match(value.reason,/does NOT establish a normal heart rhythm/);
